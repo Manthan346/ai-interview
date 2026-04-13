@@ -1,0 +1,52 @@
+
+
+
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id String @id 
+  email  String
+  name String
+  refreshToken String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
+
+}
+
+model Interview {
+  id String @unique  @default(uuid())
+  interviewType String 
+  messages Message[]
+
+  
+}
+
+
+model Message {
+  id String @unique @id @default(uuid())
+  role assignedRole
+
+  content String
+  interviewId String
+  interview Interview @relation(fields: [interviewId], references: [id]) 
+
+  
+}
+
+enum assignedRole {
+  system
+  assistant
+  user
+}
+
+
+
+
