@@ -8,9 +8,10 @@ export const createDeepgramConnection = async () => {
   const dgSocket = await deepgram.listen.v1.createConnection({
     model: "nova-3",
     language: "en",
-    smart_format: "true",
+    smart_format: "true", 
     interim_results: "true",
     endpointing: 100,
+     
     
      keyterm: ["MERN Stack", "React", "Node.js", "Express", "MongoDB", "TypeScript", "JavaScript", "REST API", "GraphQL"],
   });
@@ -26,13 +27,13 @@ export const createDeepgramConnection = async () => {
   });
 
   dgSocket.on("error", (err: any) => console.error("Error:", err));
-  dgSocket.on("close", () => console.log("Connection closed"));
+  dgSocket.on("close", () => console.log("deepgram Connection closed"));
 
   // Connect      
   dgSocket.connect();
   await dgSocket.waitForOpen();
 
-  console.log("🤖 Deepgram connected");
+  console.log(" Deepgram connected");
 
   return dgSocket;
 };

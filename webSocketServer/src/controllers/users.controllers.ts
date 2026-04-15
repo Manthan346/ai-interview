@@ -10,7 +10,7 @@ import { generateAccessToken, generateRefreshToken } from "../utils/jwtAuth.js";
 
 
 const SignUpUser = asyncHandler(async (req: Request, res: Response) => {
-     
+
 
 
     const id_token = req.headers.authorization?.split(" ")[1]
@@ -36,7 +36,7 @@ const SignUpUser = asyncHandler(async (req: Request, res: Response) => {
     })
 
 
-   
+
 
     const user = await prisma.$transaction(async (tx) => {
 
@@ -55,7 +55,7 @@ const SignUpUser = asyncHandler(async (req: Request, res: Response) => {
             update: {
                 name: verify?.name,
                 email: verify?.email!,
-                
+
                 refreshToken: refreshToken
 
 
@@ -71,12 +71,12 @@ const SignUpUser = asyncHandler(async (req: Request, res: Response) => {
         sameSite: "lax"
     })
     res.cookie("refreshToken", refreshToken, {
-         httpOnly: true,
+        httpOnly: true,
         secure: false,
         sameSite: "lax"
-   
-      
-        
+
+
+
     })
 
 
@@ -84,8 +84,10 @@ const SignUpUser = asyncHandler(async (req: Request, res: Response) => {
         new ApiResponse(200, {
             id: user.id,
             userName: user.name,
-            email: user.email
-       
+            email: user.email,
+            accessToken: accessToken,
+            refreshToken: refreshToken
+
         }, "user created successfully")
     )
 
@@ -94,11 +96,11 @@ const SignUpUser = asyncHandler(async (req: Request, res: Response) => {
 )
 
 
-const username = asyncHandler((req: Request, res: Response)=> {
+const username = asyncHandler((req: Request, res: Response) => {
     res.send("response is working")
 
 
-}) 
+})
 
 
 

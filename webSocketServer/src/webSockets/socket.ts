@@ -8,12 +8,13 @@ import { asyncHandler } from "../helpers/asyncHandler";
 import { ApiError } from "../helpers/ApiError";
 
 export const startSocket = (server: any) => {
+
   
   const wss = new WebSocketServer({ server });
 
   wss.on("connection", async (ws) => {
     console.log("client connected");
-    
+     
 
     const dgSocket = await createDeepgramConnection();
 
@@ -29,20 +30,24 @@ export const startSocket = (server: any) => {
           const transcript = res.channel.alternatives[0].transcript;
           const isFinal = res.is_final;
 
+          const utterenceEnd = res.utterenceEnd
+
           console.log(res)
           console.log(isFinal ? " FINAL:" : "⏳ Interim:", transcript);
-
-          if (isFinal) {
+          
+             if (isFinal ) {
           const response = await getGroqChatCompletion(transcript)
           console.log(response)
          
-        const finalVoice=  await DeepgramTTS(response!)
-        console.log("finalvoice",finalVoice)
-
-        ws.send(
+     const sentences = response!.match(/[^.!?]+[.!?]+/g) || [response];
+for (const sentence of sentences) {
+  const wav = await DeepgramTTS(sentence!.trim());
+  ws.send(wav);
+      console.log("finalvoice",wav)
+}
     
-         finalVoice!
-        )
+
+      
               console.log("final voice sent",)
         
           
@@ -51,6 +56,9 @@ export const startSocket = (server: any) => {
 
             
           }
+
+    
+         
 
           // Send back to frontend
           ws.send(
@@ -65,7 +73,7 @@ export const startSocket = (server: any) => {
       } catch (err: any) {
         new ApiError(404,err.message)
       }
-    });
+    }); 
 
     dgSocket.on("close", () => {
       console.log(" Deepgram closed");

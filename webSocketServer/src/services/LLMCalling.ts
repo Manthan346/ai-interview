@@ -35,7 +35,7 @@ export async function getGroqChatCompletion(text: string) {
     model: "openai/gpt-oss-20b",
   });
   const aiReply = (await res).choices[0].message
-  console.log(aiReply.content)
+
 
 
 
