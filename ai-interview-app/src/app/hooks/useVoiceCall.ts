@@ -2,13 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { useSession } from "next-auth/react";
 
 export   const  useVoiceCall = () => {
-  let accessToken: string = ""
-  const session = useSession()
-  if(session.status === "authenticated"){
-    accessToken = session.data.access_token || ""
-    
-  }
-  
+
  
  console.log("access token", )
   const [isMicOn, setIsMicOn] = useState(false);
@@ -91,8 +85,7 @@ export   const  useVoiceCall = () => {
 
   useEffect(() => {
     
-    const socket = new WebSocket(`ws://localhost:3001?token=${accessToken}`
-     );
+    const socket = new WebSocket(`ws://localhost:3001`);
     socket.binaryType = "arraybuffer";
 
     socket.onopen = () => {
