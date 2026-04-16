@@ -1,10 +1,11 @@
 import { Request, Response } from "express"
-import { verifyGoogleAuth } from "../utils/googleAuth.js"
-import { prisma } from "../lib/prisma.js";
-import { asyncHandler } from "../helpers/asyncHandler.js";
-import { ApiResponse } from "../helpers/ApiResponse.js";
-import { ApiError } from "../helpers/ApiError.js";
-import { generateAccessToken, generateRefreshToken } from "../utils/jwtAuth.js";
+import { verifyGoogleAuth } from "../../utils/googleAuth.js"
+import { prisma } from "../../lib/prisma.js";
+import { asyncHandler } from "../../helpers/asyncHandler.js";
+import { ApiResponse } from "../../helpers/ApiResponse.js";
+import { ApiError } from "../../helpers/ApiError.js";
+import { generateAccessToken, generateRefreshToken } from "../../utils/jwtAuth.js";
+import { messages } from "@elevenlabs/elevenlabs-js/api/resources/conversationalAi/resources/conversations/index.js";
 
 //using asyncHadler to avoid try catch mess 
 
@@ -97,8 +98,17 @@ const SignUpUser = asyncHandler(async (req: Request, res: Response) => {
 
 
 const username = asyncHandler((req: Request, res: Response) => {
-    res.send("response is working")
-
+   try {
+     res.status(200).json({
+         message: "api hit"
+     })
+ 
+   } catch (error: any) {
+    res.status(404).json({
+        message: error.message
+    })
+    
+   }
 
 })
 

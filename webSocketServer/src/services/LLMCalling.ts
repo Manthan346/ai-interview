@@ -39,10 +39,12 @@ export async function getGroqChatCompletion(text: string) {
 
 
 
+
   messages.push({
     role: "assistant",
     content: aiReply.content
   })
+  console.log(aiReply.content)
 
   return aiReply.content
 

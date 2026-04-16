@@ -2,10 +2,11 @@ import express, { json } from 'express'
 import { Request, Response } from 'express'
 import http from 'http'
 
-import userrouter from './src/routes/users.route';
+import userrouter from './src/routes/userRoutes/users.route';
 import cors from 'cors'
 import cookieParser from 'cookie-parser'
 import { startSocket } from './src/webSockets/socket';
+import  jwtAuthRouter  from './src/routes/jwtAuthRoute/jwtAuth.route';
 
 const app = express()
 app.use(cors({
@@ -37,7 +38,8 @@ app.get("/", (req, res)=> {
 })
 
 app.use("/v1/api/users", userrouter)
-app.use("v1/user", userrouter)
+app.use("/v1/user", userrouter)
+app.use("/v1/api/auth", jwtAuthRouter)
 
 
 server.listen(port, () => console.log("port running on 3001"))

@@ -1,4 +1,5 @@
 import jwt from 'jsonwebtoken'
+import { ApiError } from '../helpers/ApiError'
 
 type JWT = {
     id: string,
