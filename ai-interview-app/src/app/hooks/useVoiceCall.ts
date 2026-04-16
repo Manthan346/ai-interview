@@ -2,8 +2,6 @@ import { useState, useRef, useEffect } from "react";
 import { useSession } from "next-auth/react";
 
 export   const  useVoiceCall = () => {
-
- 
  console.log("access token", )
   const [isMicOn, setIsMicOn] = useState(false);
   const [isCallActive, setIsCallActive] = useState(true);
