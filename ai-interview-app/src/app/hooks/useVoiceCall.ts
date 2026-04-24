@@ -1,28 +1,23 @@
 import { useState, useRef, useEffect } from "react";
 import { useSession } from "next-auth/react";
+import { io, Socket } from "socket.io-client";
 
-export   const  useVoiceCall = () => {
-  let accessToken: string = ""
-  const session = useSession()
-  if(session.status === "authenticated"){
-    accessToken = session.data.access_token || ""
-    
-  }
-  
- 
- console.log("access token", )
+export const useVoiceCall = () => {
+
+
   const [isMicOn, setIsMicOn] = useState(false);
   const [isCallActive, setIsCallActive] = useState(true);
   const [aiSpeaking, setAiSpeaking] = useState(false);
 
-  const wsRef = useRef<WebSocket | null>(null);
+  const socketRef = useRef<Socket | null>(null);
+
   const audioQueueRef = useRef<string[]>([]);
   const isPlayingRef = useRef(false);
 
-  const mediaRecorderRef = useRef<MediaRecorder | null>(null)
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const mediaStreamRef = useRef<MediaStream | null>(null);
 
-  function playNextInQueue() {
+  const playNextInQueue = () => {
     if (audioQueueRef.current.length === 0) {
       isPlayingRef.current = false;
       setAiSpeaking(false);
@@ -46,20 +41,23 @@ export   const  useVoiceCall = () => {
     };
 
     audio.play().catch(() => playNextInQueue());
-  }
+  };
 
-  function handleDataAvailable(event: BlobEvent) {
-    if (event.data.size > 0 && wsRef.current?.readyState === WebSocket.OPEN) {
-      wsRef.current.send(event.data);
+  const handleDataAvailable = (event: BlobEvent) => {
+    if (event.data.size > 0 && socketRef.current?.connected) {
+      socketRef.current.emit("audio-chunk", event.data);
     }
-  }
+  };
 
   const handleAudio = async () => {
     try {
       setIsMicOn((prev) => !prev);
 
       if (!mediaStreamRef.current) {
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        const stream = await navigator.mediaDevices.getUserMedia({
+          audio: true,
+        });
+
         mediaStreamRef.current = stream;
 
         const recorder = new MediaRecorder(stream, {
@@ -77,37 +75,47 @@ export   const  useVoiceCall = () => {
       } else if (recorder?.state === "recording") {
         recorder.stop();
       }
-    } catch (err) {
-      console.log("Mic error:", err);
+    } catch (error) {
+      console.log("Mic error:", error);
     }
   };
 
   const handleEndCall = () => {
     setIsCallActive(false);
+
     mediaRecorderRef.current?.stop();
-    mediaStreamRef.current?.getTracks().forEach((t) => t.stop());
-    wsRef.current?.close();  
+
+    mediaStreamRef.current
+      ?.getTracks()
+      .forEach((track) => track.stop());
+
+    socketRef.current?.disconnect();
   };
 
   useEffect(() => {
-    
-    const socket = new WebSocket(`ws://localhost:3001?token=${accessToken}`
-     );
-    socket.binaryType = "arraybuffer";
+   
 
-    socket.onopen = () => {
-      wsRef.current = socket;
-    };
+    const socket = io("http://localhost:3001", {
+      transports: ["websocket"],
+      
+      withCredentials: true,
+    });
 
-    socket.onmessage = (message) => {
-      if (typeof message.data === "string") {
-        console.log("Transcript:", JSON.parse(message.data));
-        return;
-      }
+    socketRef.current = socket;
 
-      if (message.data.byteLength <= 44) return;
+    socket.on("connect", () => {
+      console.log("Socket connected:", socket.id);
+    });
 
-      const blob = new Blob([message.data], { type: "audio/wav" });
+    socket.on("transcript", (data) => {
+      console.log("Transcript:", data);
+    });
+
+    socket.on("audio-response", (audioBuffer) => {
+      const blob = new Blob([audioBuffer], {
+        type: "audio/wav",
+      });
+
       const url = URL.createObjectURL(blob);
 
       audioQueueRef.current.push(url);
@@ -115,9 +123,19 @@ export   const  useVoiceCall = () => {
       if (!isPlayingRef.current) {
         playNextInQueue();
       }
-    };
+    });
 
-    return () => socket.close();
+    socket.on("error-message", (msg) => {
+      console.log("Socket error:", msg);
+    });
+
+    socket.on("disconnect", () => {
+      console.log("Socket disconnected");
+    });
+
+    return () => {
+      socket.disconnect();
+    };
   }, []);
 
   return {
