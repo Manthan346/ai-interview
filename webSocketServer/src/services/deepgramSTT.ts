@@ -12,7 +12,7 @@ export const createDeepgramConnection = async (
     language: "en",
     interim_results: "true",
     endpointing: 500,         // keep under 1000ms for reliability
-    utterance_end_ms: "2000", // primary end-of-utterance signal
+    utterance_end_ms: "1000", // primary end-of-utterance signal
     keyterm: ["MERN Stack", "React", "Node.js", "Express", "MongoDB", "TypeScript", "JavaScript", "REST API", "GraphQL"],
   });
 

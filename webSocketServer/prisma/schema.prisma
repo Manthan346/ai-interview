@@ -9,15 +9,18 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+   
 }
 
 model User {
-  id String @id 
-  email  String
-  name String
+  id String @id @default(uuid())
+  email  String @unique
   refreshToken String?
+  userOtp String
+  otpExpires DateTime?
+  isVerified Boolean @default(false)
   createdAt DateTime @default(now())
-  updatedAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
 }
 

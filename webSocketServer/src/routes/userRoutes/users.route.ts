@@ -1,9 +1,12 @@
 import { Router } from "express";
-import { SignUpUser, username } from "../../controllers/userControllers/users.controllers";
+import { createUser } from "../../controllers/userControllers/users.create";
+import { sendOtpToEmail, verifyEmail } from "../../controllers/userControllers/users.verify";
 
-const userrouter = Router()
 
-userrouter.post("/register", SignUpUser)
-userrouter.post("/username", username)
+const userRouter = Router()
 
-export default userrouter
+userRouter.post("/register", createUser)
+userRouter.post("/send-email", sendOtpToEmail)
+userRouter.post("/verify-email", verifyEmail)
+
+export default userRouter 

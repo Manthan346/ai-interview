@@ -1,10 +1,12 @@
 import Groq from "groq-sdk";
 import { systemPrompt } from "../prompt.js";
 import { ChatCompletionMessageParam } from "groq-sdk/resources/chat/completions.js";
+import dotenv from 'dotenv'
 
 
+dotenv.config()
 
-const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+const groq = new Groq({ apiKey: process.env.GROQ_API_KEY})
 
 
 const messages: ChatCompletionMessageParam[]= [
@@ -15,7 +17,7 @@ const messages: ChatCompletionMessageParam[]= [
   
 ]
 
-
+ 
 
 
 
@@ -26,7 +28,7 @@ export async function getGroqChatCompletion(text: string) {
   })
 
 
- const res = groq.chat.completions.create({
+ const res = await groq.chat.completions.create({
   tool_choice: "none",
 
 
