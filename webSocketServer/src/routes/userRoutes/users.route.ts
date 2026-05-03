@@ -1,12 +1,12 @@
 import { Router } from "express";
-import { createUser } from "../../controllers/userControllers/users.create";
-import { sendOtpToEmail, verifyEmail } from "../../controllers/userControllers/users.verify";
+import { createUser } from "../../controllers/user-controllers/users-create";
+import { sendOtpToEmail, verifyEmail } from "../../controllers/user-controllers/users-verify";
 
 
 const userRouter = Router()
 
 userRouter.post("/register", createUser)
-userRouter.post("/send-email", sendOtpToEmail)
+userRouter.get("/send-email", sendOtpToEmail)
 userRouter.post("/verify-email", verifyEmail)
 
 export default userRouter 

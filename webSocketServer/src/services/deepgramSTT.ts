@@ -56,4 +56,4 @@ export const createDeepgramConnection = async (
 
   console.log("Deepgram connected");
   return dgSocket;
-};
+}; 

@@ -3,7 +3,7 @@ import { Server as HttpServer } from "http";
 import { Server } from "socket.io";
 
 import { createDeepgramConnection } from "../services/deepgramSTT";
-import { getGroqChatCompletion } from "../services/LLMCalling";
+import { createInterviewSession } from "../services/LLMCalling";
 import { DeepgramTTS } from "../services/deepgramTTS";
 
 export const startSocket = (server: HttpServer) => {
@@ -14,7 +14,7 @@ export const startSocket = (server: HttpServer) => {
       credentials: true,
     },
   });
-  console.log(io)
+
 
   io.on("connection", async (socket) => {
     console.log("Client connected");
@@ -22,7 +22,7 @@ export const startSocket = (server: HttpServer) => {
 
     //creating stt connection 
     const dgSocket = await createDeepgramConnection(
-      async (transcript: string) => {
+      async (transcript: string) => { 
         try {
           console.log("Processing complete utterance:", transcript);
 

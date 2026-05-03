@@ -6,13 +6,11 @@ import crypto from 'crypto'
 import { ResendEmail } from "../../lib/resend";
 import { ApiResponse } from "../../helpers/ApiResponse";
 import { prisma } from "../../lib/prisma";
+import { TokenPayload } from "../../interfaces/jwt.interface";
 
 
 
-interface TokenPayload {
-    id: string,
-    email: string
-}
+
 
 const sendOtpToEmail = asyncHandler(async (req: Request, res: Response) => {
     //get token from cookies

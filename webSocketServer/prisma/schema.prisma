@@ -18,6 +18,7 @@ model User {
   refreshToken String?
   userOtp String
   otpExpires DateTime?
+  interviews Interview[]
   isVerified Boolean @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -26,23 +27,53 @@ model User {
 
 model Interview {
   id String @unique  @default(uuid())
-  interviewType String 
-  messages Message[]
-
+  role String
+  experience String
+  candidateName String
+  questions Question[]
+  overallScore Int?
+  summary String?
+  strengths String[]
+  weaknesses String[]
+  improvements String[]
+  selectionChances selectionChances
   
+    
+   userId String
+  user User @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+ 
 }
 
-
-model Message {
-  id String @unique @id @default(uuid())
-  role assignedRole
-
-  content String
+model Question {
+  id String @unique @default(uuid())
+  questions String
   interviewId String
-  interview Interview @relation(fields: [interviewId], references: [id]) 
+  interview Interview @relation(fields: [interviewId], references: [id])
 
+  answer Answer? 
+    answerId String? @unique
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+}
+
+model Answer {
+  id String @unique @default(uuid())
+  userAnswerSummary String?
+   expectedAnswer String?
+   score Int
+  questionId String @unique 
+  question Question @relation(fields: [questionId], references: [id])
+  
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
   
 }
+
 
 enum assignedRole {
   system
@@ -50,6 +81,10 @@ enum assignedRole {
   user
 }
 
-
+enum selectionChances {
+  LOW
+  MEDIUM
+  HIGH
+}
 
 

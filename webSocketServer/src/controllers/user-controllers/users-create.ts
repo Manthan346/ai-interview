@@ -24,13 +24,15 @@ const createUser = asyncHandler(async (req: Request, res: Response) => {
         update: {
             
             email: email,
-            refreshToken: ""
+            refreshToken: "",
+            isVerified: false
         },
         create: {
            
             userOtp: "",
             email: email,
-            refreshToken: ""
+            refreshToken: "",
+            isVerified: false
         }
     })
 
@@ -70,7 +72,8 @@ const createUser = asyncHandler(async (req: Request, res: Response) => {
     })
     return res.status(200).json(
         new ApiResponse(200,{
-            addRefreshToken
+            name: user.email,
+            isVerified: user.isVerified
         }, "user created successfully")
     )
 
