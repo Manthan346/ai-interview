@@ -24,63 +24,44 @@ export default function AppSideBar() {
   
   
   return (
- 
-      <div className="flex">
-        
-        <Sidebar>
-       
-          
-                 <SidebarHeader className="bo text-3xl cursor-pointer">
-        <div className="flex items-center gap-3 px-2">
+    <>
+      <Sidebar>
+        <SidebarHeader className="bo text-3xl cursor-pointer">
+          <div className="flex items-center gap-3 px-2">
             <User2 className="" />
-        
-           <span className="font-semibold">AI Interview</span>
-        </div>
-      </SidebarHeader>
-        
-            
-            
-         
+            <span className="font-semibold">AI Interview</span>
+          </div>
+        </SidebarHeader>
 
-          <SidebarContent>
-            <SidebarGroup className="">
-              <SidebarGroupLabel>hello</SidebarGroupLabel>
+        <SidebarContent>
+          <SidebarGroup className="">
+            <SidebarGroupLabel>hello</SidebarGroupLabel>
 
-              <SidebarGroupContent className="">
-                <SidebarMenu className="">
-                 {
-                    menu_item.map((item) => (
-                        <SidebarMenuItem key={item.title} >
-                           
-                            <SidebarMenuButton>
-                               
-                             <item.icon />   <a href={item.href}>{item.title}</a>
-                            </SidebarMenuButton>
-                     
-                        </SidebarMenuItem>
-                    ))
-                 }
-                </SidebarMenu>
-              </SidebarGroupContent>
-
-            </SidebarGroup>
-          </SidebarContent>
-          <SidebarFooter>
-            <SidebarGroupContent>
-                <SidebarMenu>
-                  <SidebarMenuButton>
-                    <SidebarMenuItem>username</SidebarMenuItem>
+            <SidebarGroupContent className="rounded-2xl">
+              <SidebarMenu className="rounded 2xl ">
+                {menu_item.map((item) => (
+                  <SidebarMenuItem key={item.title} className="rounded-2xl">
+                    <SidebarMenuButton>
+                      <item.icon /> <a href={item.href}>{item.title}</a>
                     </SidebarMenuButton>
-                </SidebarMenu>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
             </SidebarGroupContent>
-          </SidebarFooter>
-        </Sidebar>
-
-          
+          </SidebarGroup>
+        </SidebarContent>
         
-          <SidebarTrigger />
+        <SidebarFooter>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              <SidebarMenuButton>
+                <SidebarMenuItem>username</SidebarMenuItem>
+              </SidebarMenuButton>
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarFooter>
+      </Sidebar>
 
-      </div>
-    
+    </>
   )
 }

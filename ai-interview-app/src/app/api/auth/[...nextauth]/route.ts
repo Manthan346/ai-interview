@@ -1,4 +1,4 @@
-import { sendIdToken } from "@/api";
+
 import NextAuth, { NextAuthOptions } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import axios from "axios";
@@ -34,15 +34,15 @@ export const GoogleAuth: NextAuthOptions = {
 
     async jwt({ token, account }) {
   // First login
-  if (account?.id_token) {
-    const res = await sendIdToken(account.id_token);
+  // if (account?.id_token) {
+  //   const res = await sendIdToken(account.id_token);
 
-    token.access_token = res.data.data.accessToken;
-    token.refresh_token = res.data.data.refreshToken;
-    token.expires_at = Math.floor(Date.now() / 1000) + 15 * 60;
+  //   token.access_token = res.data.data.accessToken;
+  //   token.refresh_token = res.data.data.refreshToken;
+  //   token.expires_at = Math.floor(Date.now() / 1000) + 15 * 60;
 
-    return token;
-  }
+  //   return token;
+  // }
 
   // If token still valid
   if (Date.now() / 1000 < (token.expires_at as number)) {

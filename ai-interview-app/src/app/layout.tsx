@@ -6,6 +6,8 @@ import { SidebarProvider } from "@/components/ui/sidebar";
 import AppSideBar from "@/components/sidebar/app-sidebar";
 import { SessionProvider } from "next-auth/react";
 import Providers from "./provider";
+import { ThemeProvider } from "@/components/themes/theme-provider";
+import { ModeToggle } from "@/components/themes/toogle-theme";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -28,20 +30,22 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-     
-      
+    <html lang="en" suppressHydrationWarning>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        suppressHydrationWarning
       >
-        <Providers >
-
-        {children}
+        <Providers>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
+            {children}
+          </ThemeProvider>
         </Providers>
-   
       </body>
-    
-      
     </html>
   );
 }

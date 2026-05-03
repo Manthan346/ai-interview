@@ -3,63 +3,87 @@ import axios from "axios";
 import { getServerSession } from "next-auth";
 import { getToken } from "next-auth/jwt";
 import { getSession, useSession } from "next-auth/react";
+import { SignupType } from "./lib/zod/user-validation";
 
 const backend = axios.create({
-    baseURL: process.env.NEXT_PUBLIC_BASE_URL ||  "http://localhost:3001",
-    withCredentials: true,
-   
-    
+  baseURL: process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3001",
+  withCredentials: true,
+
+
 })
 
 
 
-export const sendIdToken = (token: string)  => {
-    console.log("backend hit fro api ts", token)
-   return backend.post("/v1/api/users/register",{
-    
-   }, {
-        headers: {
-            
-            
-            "authorization": `Bearer ${token}`,
-            
-            
-
-
-        },
-        
-    })
-}
-
-
-backend.interceptors.request.use(async (config) => {
-  const session = await getSession(); // reads from next-auth.session-token
-  console.log("session ", session)
-  
-console.log("session token", session?.access_token)
-  if (session?.access_token) {
-    config.headers.Authorization = `Bearer ${session.access_token}`;
-    
-
-  }
-
-  return config;
-});
 
 
 backend.interceptors.response.use(
-  res => res,
+  (res) => res,
+
   async (error) => {
-    if (error.response?.status === 401) {
-     
+    const originalRequest = error.config
+
+    if (
+      error.response?.status === 401 &&
+      !originalRequest._retry
+    ) {
+      originalRequest._retry = true
+
+      try {
+        await backend.post("/api/v1/user/refresh")
+
+        return backend(originalRequest)
+      } catch (err) {
+        window.location.href = "/login"
+      }
     }
+
     return Promise.reject(error)
   }
 )
 
-
-
-export const username = () => {
-    return backend.post("/v1/user/username")
+//create user 
+export const signUps = (email: SignupType) => {
+  return backend.post("/api/v1/user/register",
+    email
+  )
 
 }
+
+export const verifyOtp = (otp: string) => {
+  return backend.post("/api/v1/user/verify-email", {
+    otp
+  })
+
+}
+
+export const sendOtpToEmail = () => {
+  return backend.get("/api/v1/user/send-email")
+}
+
+
+
+//interceptor for refresh token when expired
+backend.interceptors.response.use(
+  (res) => res,
+
+  async (error) => {
+    const originalRequest = error.config
+
+    if (
+      error.response?.status === 401 &&
+      !originalRequest._retry
+    ) {
+      originalRequest._retry = true
+
+      try {
+        backend.post("")
+
+        return backend(originalRequest)
+      } catch (err) {
+        window.location.href = "/signups"
+      }
+    }
+
+    return Promise.reject(error)
+  }
+)

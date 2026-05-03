@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+
 import { Mic, MicOff, PhoneOff, Send } from "lucide-react";
 import { motion } from "framer-motion";
 import { useVoiceCall } from "../hooks/useVoiceCall";
