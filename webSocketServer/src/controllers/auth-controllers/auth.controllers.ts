@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import {  JwtPayload } from "jsonwebtoken";
+
 
 import { asyncHandler } from "../../helpers/asyncHandler";
 import { ApiError } from "../../helpers/ApiError";
@@ -9,33 +9,58 @@ import { ApiResponse } from "../../helpers/ApiResponse";
 
 import { prisma } from "../../lib/prisma";
 import { authRequest } from "../../interfaces/auth.interface";
+import jwt from "jsonwebtoken"
+import { TokenPayload } from "../../interfaces/jwt.interface";
 
 
 
 
 
 const generateNewAccessAndRefreshToken = asyncHandler(async (req: authRequest, res: Response, next: NextFunction) => {
-    
-
-    if (! req.user!.id || req.user?.email  ) {
-        throw new ApiError(400, "details not found")
+    const refreshToken = req.cookies.refreshToken
+    if (!refreshToken) {
+        throw new ApiError(400, "refresh token not found")
         
     }
-    const newAccessToken = generateAccessToken({id: req.user!.id, email: req.user?.email, isVerified: req.user?.isVerified})
-    const newRefreshToken = generateRefreshToken({id: req.user!.id})
+    
+
+    const decoded = jwt.verify(refreshToken, process.env.JWT_SECRET!) as TokenPayload
+    const user = await prisma.user.findFirst({
+        where : {
+            id: decoded.id
+        }
+    })
+    if (!user) {
+        throw new ApiError(404, "user not found")
+        
+    }
+    
+
+    const newAccessToken = generateAccessToken({id:user.id, email: user.email, isVerified: user.isVerified})
+    const newRefreshToken = generateRefreshToken({id: user!.id})
+    res.cookie("refreshToken", newRefreshToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "strict",
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    })
+
+    res.cookie("accessToken", newAccessToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "strict",
+      maxAge:  15 * 60 * 1000, // 15 minutes
+    })
 
    await prisma.user.update({
-        where: {id: req.user?.id}, 
+        where: {id: user?.id}, 
         data: {refreshToken: newRefreshToken,
-            isVerified: req.user?.isVerified
+            isVerified: user.isVerified
         }
     })
 
     return res.status(200).json(
-        new ApiResponse(200,{
-      access_token:  newAccessToken,
-      refresh_token: newRefreshToken
-    }, "new access token and referesh token provided successfully")
+        new ApiResponse(200, "new access token and referesh token provided successfully")
 
     ) 
     
@@ -45,4 +70,4 @@ const generateNewAccessAndRefreshToken = asyncHandler(async (req: authRequest, r
 
 export {
     generateNewAccessAndRefreshToken
-}
+} 
