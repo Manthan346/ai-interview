@@ -5,159 +5,183 @@ import dotenv from "dotenv";
 import { prisma } from "../lib/prisma.js";
 import { ApiError } from "../helpers/ApiError.js";
 import { AIAction } from "../types/interview-actions.types.js";
+import { parse } from "node:path";
 
 dotenv.config();
 
-const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
-interface sessionDetail {
-   name: string;
+const groq = new Groq({
+  apiKey: process.env.GROQ_API_KEY,
+});
+
+interface SessionDetail {
+  name: string;
   experience: string;
   role: string;
-  userId: string
+  userId: string;
+  interviewId: string;
 }
 
-// create messages per interview session
+type InterviewSessionState = {
+  messages: ChatCompletionMessageParam[];
+};
+
+const interviewSessions = new Map<string, InterviewSessionState>();
+
 export async function createInterviewSession({
   name,
   experience,
   role,
-  userId
-}: sessionDetail) {
-  const messages: ChatCompletionMessageParam[] = [
-    {
-      role: "system",
-      content: createSystemPrompt({ name, experience, role }),
+  userId,
+  interviewId,
+}: SessionDetail) {
+
+  // get current interview
+  const interviewDetail = await prisma.interview.findUnique({
+    where: {
+      id: interviewId,
     },
-  ];
+  });
 
-  //fetching latest interview details of user from db
-   const interviewDetail = await prisma.interview.findFirst({
-        where: {
-            userId: userId
+  if (!interviewDetail) {
+    throw new ApiError(404, "Interview detail not found");
+  }
+
+  // using interviewId as session key
+  let session = interviewSessions.get(interviewId);
+
+  // create session only once
+  if (!session) {
+    session = {
+      messages: [
+        {
+          role: "system",
+          content: createSystemPrompt({
+            name,
+            experience,
+            role,
+          }),
         },
-        orderBy: {
-          createdAt: "desc",
-        }
-        
-    })
+      ],
+    };
 
-  
+    interviewSessions.set(interviewId, session);
+  }
 
-  // function to send messages
   async function sendMessage(text: string) {
-    
 
-    messages.push({
+    // push user message
+    session!.messages.push({
       role: "user",
       content: text,
-
-      
     });
 
+    // ai response
     const res = await groq.chat.completions.create({
-      model: "openai/gpt-oss-20b",
-      messages,
-      tool_choice: "none",
+      model: "openai/gpt-oss-120b",
+
+      messages: session!.messages,
+
+      response_format: { 
+        type: "json_object",
+      },
     });
-     if (!interviewDetail)  throw new ApiError(404, "interview detail not found")
 
-    const aiReply = res.choices[0].message;
-    const parse : AIAction = JSON.parse(aiReply.content!)
-    console.log("parsed content",parse)
-    switch (parse.action) {
-      case "ASK_QUESTION":
-        messages.push({
-          role: "assistant",
-          content: aiReply.content,
-        });
+    const aiContent = res.choices[0].message.content; 
 
- 
-    
-        
-        // storing the questions in db 
-       const questions =   await prisma.question.create({
-          data: {
-            questions: parse.question,
-            interviewId: interviewDetail.id,
-          },
-        })
-        console.log("questions", parse.question)
-        break;
-      case "FOLLOW_UP":
-        messages.push({
-          role: "assistant",
-          content: aiReply.content,
-        });
-       
-      
-        console.log("followUpQuestion", parse.question)
-        break;
-      case "SAVE_ANSWER":
-        messages.push({
-          role: "assistant",
-          content: aiReply.content,
-        });
+    if (!aiContent) { 
+      throw new ApiError(500, "AI returned empty response");
+    }
 
-        //save answer to db
-     const saveAnswer =   await prisma.answer.create({
-          data: {
-            userAnswerSummary: parse.userAnswerSummary,
-            questionId: questions!.id,
-            expectedAnswer: parse.expectedAnswer,
-            score: parse.score
+    let parsed: AIAction;
 
-            
+    // parse ai json
+    try {
+      parsed = JSON.parse(aiContent) as AIAction;
+    } catch {
+      throw new ApiError(500, "AI response is not valid JSON");
+    }
 
-            
-        
-          },
-        })
-        console.log("answer", saveAnswer)
-        break;
-        case "END_INTERVIEW": 
-        messages.push({
-          role: "assistant",
-          content: aiReply.content,
-        });
+    // store assistant response in memory
+    session!.messages.push({
+      role: "assistant",
+      content: aiContent,
+    });
+    console.log(aiContent)
+
+    switch (parsed.action) {
+
+      // new question
+      case "ASK_QUESTION": {
+        return {
+          raw: aiContent,
+          parsed,
+        };
+      }
+
+      // follow up question
+      case "FOLLOW_UP": {
+        return {
+          raw: aiContent,
+          parsed,
+        };
+      }
+
+      // end interview
+      case "END_INTERVIEW": {
+
         await prisma.interview.update({
-          where: {id: interviewDetail.id},
+          where: {
+            id: interviewDetail!.id,
+          },
+
           data: {
-            overallScore: parse.overallScore,
-            summary: parse.summary,
-            strengths: parse.strengths,
-            weaknesses: parse.weaknesses,
-            improvements: parse.improvements,
-            selectionChances: parse.selectionChances
+            overallScore: parsed.overallScore,
+            summary: parsed.summary,
+            strengths: parsed.strengths,
+            weaknesses: parsed.weaknesses,
+            improvements: parsed.improvements,
+            finalInterviewVerdict: parsed.finalInterviewVerdict,
+            candidatePerspective: parsed.candidatePerspective,
+            selectionChances: parsed.selectionChances,
+          },
+        }); 
 
-          }
+        // batch save question evaluations 
+        if (parsed.questionEvaluations && parsed.questionEvaluations.length > 0) {
+          await prisma.question.createMany({
+            data: parsed.questionEvaluations.map(ev => ({
+              interviewId: interviewDetail!.id, 
+              questions: ev.question,
+              userAnswerSummary: ev.userAnswerSummary,
+              expectedAnswer: ev.expectedAnswer,
+              score: ev.score, 
+              feedback: ev.feedback,
+              whatWasMissing: ev.whatWasMissing,
+              whatInterviewersWouldThink: ev.whatInterviewersWouldThink,
+              betterAnswerOutline: ev.betterAnswerOutline
+            }))
+          });
+        }
 
-        })
+        // clear memory
+        interviewSessions.delete(interviewId);
+
+        return {
+          raw: aiContent,
+          parsed,
+        };
+      }
 
       default:
-        messages.push({
-          role: "assistant",
-          content: aiReply.content,
-        });
+        throw new ApiError(
+          400,
+          "Unknown AI action"
+        );
     }
-    
-
-    
-
- console.log("messages", messages)
-
-
-
-    return {
-     raw: aiReply.content,
-     parse
-
-    };
   }
 
   return {
     sendMessage,
-    
-    
-    messages, // optional (debug / memory)
+    messages: session.messages,
   };
 }

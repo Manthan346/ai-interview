@@ -36,6 +36,8 @@ model Interview {
   strengths String[]
   weaknesses String[]
   improvements String[]
+  finalInterviewVerdict String?
+  candidatePerspective String?
   
   selectionChances selectionChances?
   
@@ -53,27 +55,20 @@ model Question {
   interviewId String
   interview Interview @relation(fields: [interviewId], references: [id])
 
-  answer Answer? 
-  
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-}
-
-model Answer {
-  id String @id @default(uuid())
   userAnswerSummary String?
-   expectedAnswer String?
-   score Int?
-  questionId String @unique 
-  question Question @relation(fields: [questionId], references: [id])
-  
-  
+  expectedAnswer String?
+  feedback String?
+  whatWasMissing String?
+  whatInterviewersWouldThink String?
+  betterAnswerOutline String?
+  score Int?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  
+
 }
+
+
 
 
 enum assignedRole {

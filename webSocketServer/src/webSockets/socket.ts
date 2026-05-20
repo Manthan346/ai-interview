@@ -45,13 +45,27 @@ export const startSocket = (server: HttpServer) => {
     next()
     
   })
+ 
 
   io.on("connection", async (socket) => {
     console.log("Client connected");
     console.log("Socket ID:", socket.id);
     console.log("user", socket.data.user) 
     const user = socket.data.user
-    
+
+    const interviewDetail = await prisma.interview.findFirst({
+        where: {
+            userId: user.id
+        },
+        orderBy: {
+          createdAt: "desc",
+        }
+        
+    })
+    if (!interviewDetail) {
+      throw new ApiError(404, "interview details not found")
+      
+    }
     
    
 
@@ -62,18 +76,45 @@ export const startSocket = (server: HttpServer) => {
           console.log("Processing complete utterance:", transcript);
 
           const response = await createInterviewSession({
-            
+            role: interviewDetail!.role,
+            experience: interviewDetail!.experience,
+            name: interviewDetail?.candidateName,
+            userId: user.id,
+            interviewId: interviewDetail!.id
           });
           //breaking the response into multiple piceses using (.)
           const sentences =
-            response?.match(/[^.!?]+[.!?]+/g) || [response];
+            await response.sendMessage(transcript)
 
-          for (const sentence of sentences) {
-            const wav = await DeepgramTTS(sentence!.trim());
+let finalQuestion = "";
+
+switch (sentences.parsed.action) {
+  case "ASK_QUESTION":
+  case "FOLLOW_UP":
+    finalQuestion = sentences.parsed.question;
+    break;
+
+  case "END_INTERVIEW": 
+    socket.disconnect();
+    break;
+}
+
+  const chunks =
+    finalQuestion.match(/[^.!?]+[.!?]?/g) || [finalQuestion];
+
+  for (const chunk of chunks) {
  
-            // send audio chunk to frontend
-            socket.emit("audio-response", wav);
-          }
+    const cleanChunk = chunk.trim();
+
+    if (!cleanChunk) continue;
+
+    await DeepgramTTS(cleanChunk, (audioData) => {
+      socket.emit("audio-response", audioData);
+    });
+  }
+
+
+         
 
           // send transcript
           socket.emit("transcript", {
@@ -90,7 +131,7 @@ export const startSocket = (server: HttpServer) => {
 
     // receive audio from frontend
     socket.on("audio-chunk", (chunk) => {
-      try {
+      try { 
         if (dgSocket.readyState === 1) {
           dgSocket.sendMedia(chunk);
         }
@@ -103,7 +144,7 @@ export const startSocket = (server: HttpServer) => {
       console.log("Client disconnected");
 
       try {
-        dgSocket.sendCloseStream({
+        dgSocket.sendCloseStream({ 
           type: "CloseStream",
         });
       } catch {}
@@ -113,7 +154,7 @@ export const startSocket = (server: HttpServer) => {
       } catch {}
     });
 
-    socket.on("connect_error", (err) => {
+    socket.on("connect_error", (err) => { 
       console.log("Socket error:", err);
     });
   });

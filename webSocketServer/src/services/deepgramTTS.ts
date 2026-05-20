@@ -71,29 +71,53 @@
 
 import { DeepgramClient } from "@deepgram/sdk";
 
-export async function DeepgramTTS(text: string): Promise<Buffer> {
+export async function DeepgramTTS(
+  text: string,
+  onAudioData: (buffer: Buffer) => void
+): Promise<void> {
   const client = new DeepgramClient();
 
-  const response = await client.speak.v1.audio.generate({
-    text,
-    model: "aura-2-athena-en",
-    encoding: "linear16",
-    container: "wav",
-    sample_rate: 16000,
+  return new Promise(async (resolve, reject) => {
+    // @ts-ignore
+    const connection = await client.speak.v1.createConnection({
+      model: "aura-2-thalia-en",
+      encoding: "linear16",
+      sample_rate: 24000,
+    });
+
+    connection.on("message", async (data: any) => {
+      if (data instanceof ArrayBuffer) { 
+        onAudioData(Buffer.from(data));
+      } else if (Buffer.isBuffer(data)) {
+        onAudioData(data);
+        console.log(data)
+      } else if (data && typeof data.arrayBuffer === "function") {
+        try {
+          const arrayBuffer = await data.arrayBuffer();
+          onAudioData(Buffer.from(arrayBuffer));
+        } catch (err) {
+          console.error("Failed to convert TTS Blob:", err);
+        }
+      } else if (data && data.type === "Flushed") {
+        setTimeout(() => {
+          connection.close();
+          resolve();
+        }, 500);
+      }
+    });
+
+    connection.on("error", (err: any) => {
+      console.error("TTS WebSocket Error:", err);
+      reject(err);
+    });
+
+    connection.connect();
+    // @ts-ignore
+    await connection.waitForOpen();
+
+    connection.sendText({ type: "Speak", text });
+    connection.sendFlush({ type: "Flush" });
   });
-
-  // Stream chunks as they arrive instead of waiting for full response
-  const stream = response.stream();
-  const reader = stream!.getReader();
-  const chunks: Uint8Array[] = [];
-
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    chunks.push(value);
-  }
-
-  return Buffer.concat(chunks);
 }
 
 
