@@ -102,7 +102,7 @@ export async function DeepgramTTS(
         setTimeout(() => {
           connection.close();
           resolve();
-        }, 500);
+        }, 50);
       }
     });
 
