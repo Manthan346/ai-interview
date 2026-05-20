@@ -49,60 +49,64 @@ export const startSocket = (server: HttpServer) => {
     });
 
     if (!interviewDetail) {
-      throw new ApiError(404, "interview details not found");
+      throw new ApiError(404, "interview details not found")
+      
     }
+    
+   
 
-    const systemPrompt = createVoiceAgentPrompt({
-      role: interviewDetail.role,
-      experience: interviewDetail.experience,
-      name: interviewDetail.candidateName,
-    });
+    //creating stt connection 
+    const dgSocket = await createDeepgramConnection(
+      async (transcript: string) => { 
+        try {
+          console.log("Processing complete utterance:", transcript);
+          socket.emit("ai-thinking");
 
-    // Array to collect conversation history for final evaluation
-    const conversationHistory: any[] = [];
-
-    // Create Deepgram Agent Connection
-    let dgAgent: any = null;
-    try {
-      dgAgent = await createDeepgramAgentConnection(
-        systemPrompt,
-        (buffer: Buffer) => {
-          // AI speaking audio chunk
-          socket.emit("audio-response", buffer);
-          console.log(buffer)
-        },
-        
-        (data: any) => {
-          // Collect transcripts
-          conversationHistory.push({
-            role: data.role,
-            content: data.content,
+          const response = await createInterviewSession({
+            role: interviewDetail!.role,
+            experience: interviewDetail!.experience,
+            name: interviewDetail?.candidateName,
+            userId: user.id,
+            interviewId: interviewDetail!.id
           });
-          
-          if (data.role === "assistant") {
-             // Let the frontend know what the AI said in text form if needed
-             socket.emit("transcript", {
-               type: "transcript",
-               text: data.content,
-               final: true,
-             });
-          }
-        },
-        () => {
-          // User interrupted the AI
-          socket.emit("clear-audio");
-        },
-        () => {
-          // Agent finished speaking
-        },
-        () => {
-          console.log("Agent connection closed");
+          //breaking the response into multiple piceses using (.)
+          const sentences =
+            await response.sendMessage(transcript)
+
+let finalQuestion = "";
+
+switch (sentences.parsed.action) {
+  case "ASK_QUESTION":
+  case "FOLLOW_UP":
+    finalQuestion = sentences.parsed.question;
+    break;
+
+  case "END_INTERVIEW": 
+    socket.disconnect();
+    break;
+}
+
+  if (finalQuestion.trim()) {
+    await DeepgramTTS(finalQuestion.trim(), (audioData) => {
+      socket.emit("audio-response", audioData);
+    });
+  }
+
+
+         
+
+          // send transcript
+          socket.emit("transcript", {
+            type: "transcript",
+            text: transcript,
+            final: true,
+          });
+        } catch (error) {
+          console.log("AI processing error:", error);
+          socket.emit("error-message", "Failed to process transcript");
         }
-      );
-    } catch (error) {
-      console.log("Failed to connect to Deepgram Agent:", error);
-      socket.emit("error-message", "Failed to connect to Voice Agent");
-    }
+      }
+    );
 
     // receive audio from frontend
    socket.on("audio-chunk", (chunk) => {
