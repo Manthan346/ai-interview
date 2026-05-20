@@ -11,8 +11,8 @@ export const createDeepgramConnection = async (
     model: "nova-3",
     language: "en",
     interim_results: "true",
-    endpointing: 300,
-    utterance_end_ms: "1000", 
+    endpointing: 500,
+    utterance_end_ms: "1500", 
     keyterm: [
       "MERN Stack",
       "React",
