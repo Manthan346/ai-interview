@@ -10,6 +10,7 @@ const Index = () => {
   const {isMicOn,
     isCallActive,
     aiSpeaking,
+    isAiThinking,
     handleAudio,
     handleEndCall} = useVoiceCall()
 
@@ -25,13 +26,23 @@ const Index = () => {
               animate={
                 aiSpeaking
                   ? { scale: [1, 1.15, 1], opacity: [1, 0.8, 1] }
+                  : isAiThinking
+                  ? { scale: [0.95, 1.05, 0.95], opacity: [0.3, 1, 0.3] }
                   : { scale: 1 }
               }
-              transition={{ duration: 1, repeat: aiSpeaking ? Infinity : 0 }}
-              className="h-20 w-20 sm:h-28 sm:w-28 rounded-full border-4 border-primary"
-            />
+              transition={{ duration: aiSpeaking ? 1 : 1.5, repeat: aiSpeaking || isAiThinking ? Infinity : 0 }}
+              className="h-20 w-20 sm:h-28 sm:w-28 rounded-full border-4 border-primary flex items-center justify-center"
+            >
+              {isAiThinking && (
+                <div className="flex gap-1">
+                  <motion.div animate={{ opacity: [0, 1, 0] }} transition={{ duration: 1.5, repeat: Infinity, delay: 0 }} className="w-1.5 h-1.5 rounded-full bg-primary" />
+                  <motion.div animate={{ opacity: [0, 1, 0] }} transition={{ duration: 1.5, repeat: Infinity, delay: 0.3 }} className="w-1.5 h-1.5 rounded-full bg-primary" />
+                  <motion.div animate={{ opacity: [0, 1, 0] }} transition={{ duration: 1.5, repeat: Infinity, delay: 0.6 }} className="w-1.5 h-1.5 rounded-full bg-primary" />
+                </div>
+              )}
+            </motion.div>
             <span className="absolute bottom-3 left-3 text-sm font-medium text-secondary-foreground opacity-70">
-              AI
+              {aiSpeaking ? "AI is responding..." : isAiThinking ? "AI is thinking..." : "AI"}
             </span>
             {!isCallActive && (
               <div className="absolute inset-0 flex items-center justify-center rounded-lg bg-secondary/80">

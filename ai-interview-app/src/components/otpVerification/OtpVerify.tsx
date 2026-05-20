@@ -47,7 +47,11 @@ function VerifyOtp() {
 
   useEffect(() => {
     //send otp to email
-    sendOtpToEmail()
+   try {
+     sendOtpToEmail()
+   } catch (error:any) {
+      console.log(error.message) 
+   }
    
   }, [])
 

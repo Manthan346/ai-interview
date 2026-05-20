@@ -19,9 +19,16 @@ import {
 } from "@/components/ui/select"
 
 import { PrepType, prepSchema } from "@/lib/zod/prep-validation"
+import { createInterviewSession } from "@/api"
+
 
 const ROLES = [
   "Software Engineer (IT)",
+  "Full stack developer",
+  "frontend developer",
+  "react.js developer",
+  "backend developer",
+  "java full stack developer",
   "Data Scientist (IT)",
   "Product Manager (IT)",
   "Accountant (Accounts)",
@@ -51,6 +58,7 @@ const EXPERIENCES = [
 export function PrepForm() {
   const router = useRouter()
   const [isSubmittingForm, setIsSubmittingForm] = useState(false)
+  
 
   const {
     register,
@@ -62,19 +70,29 @@ export function PrepForm() {
     // @ts-expect-error Zod typing issue with hookform resolvers
     resolver: zodResolver(prepSchema),
     defaultValues: {
-      name: "",
+      candidateName: "",
       experience: "",
       role: "",
     },
   })
 
   const onSubmit = async (data: PrepType) => {
-    setIsSubmittingForm(true)
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1500))
-    console.log("Form Submitted:", data)
-    setIsSubmittingForm(false)
-    reset()
+   try {
+     setIsSubmittingForm(true)
+     // Simulate API call
+     await createInterviewSession(data)
+     console.log("Form Submitted:", data)
+     
+     reset()
+     router.push("/call")
+   } catch (error: any) {
+    console.log(error.message)
+
+    
+   } finally {
+    setIsSubmittingForm(false) 
+    reset({candidateName: "", experience: "", role: ""})
+   }
     // router.push("/dashboard") // Add navigation when ready
   }
 
@@ -111,12 +129,12 @@ export function PrepForm() {
                   type="text"
                   placeholder="Johnathan Doe"
                   className="h-14 rounded-2xl border-input bg-background/50 pr-12 text-base text-foreground shadow-sm transition-all focus:bg-background focus:ring-2 focus:ring-ring"
-                  {...register("name")}
+                  {...register("candidateName")}
                 />
                 <User className="absolute right-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
               </div>
-              {errors.name && (
-                <p className="text-sm text-red-500">{errors.name.message}</p>
+              {errors.candidateName && (
+                <p className="text-sm text-red-500">{errors.candidateName.message}</p>
               )}
             </div>
 
