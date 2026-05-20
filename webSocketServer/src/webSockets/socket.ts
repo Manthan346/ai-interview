@@ -74,6 +74,7 @@ export const startSocket = (server: HttpServer) => {
       async (transcript: string) => { 
         try {
           console.log("Processing complete utterance:", transcript);
+          socket.emit("ai-thinking");
 
           const response = await createInterviewSession({
             role: interviewDetail!.role,
@@ -99,16 +100,8 @@ switch (sentences.parsed.action) {
     break;
 }
 
-  const chunks =
-    finalQuestion.match(/[^.!?]+[.!?]?/g) || [finalQuestion];
-
-  for (const chunk of chunks) {
- 
-    const cleanChunk = chunk.trim();
-
-    if (!cleanChunk) continue;
-
-    await DeepgramTTS(cleanChunk, (audioData) => {
+  if (finalQuestion.trim()) {
+    await DeepgramTTS(finalQuestion.trim(), (audioData) => {
       socket.emit("audio-response", audioData);
     });
   }
