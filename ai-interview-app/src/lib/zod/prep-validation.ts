@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 export const prepSchema = z.object({
-  name: z.string().min(2, { message: "Name must be at least 2 characters." }),
+  candidateName: z.string().min(2, { message: "Name must be at least 2 characters." }),
   experience: z.string().min(1, { message: "Experience is required." }),
   role: z.string().min(1, { message: "Role is required." }),
 });

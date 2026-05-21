@@ -19,16 +19,24 @@ import {
 } from "@/components/ui/select"
 
 import { PrepType, prepSchema } from "@/lib/zod/prep-validation"
+import { createInterviewSession } from "@/api"
 
 const ROLES = [
   "Software Engineer (IT)",
   "Data Scientist (IT)",
+  "web developer",
+  "frontend developer",
+  "backend developer",
+  "react.js developer",
+  "full stack developer",
   "Product Manager (IT)",
   "Accountant (Accounts)",
   "Financial Analyst (Accounts)",
   "Sales Representative (Sales)",
   "Marketing Executive (Marketing)",
   "HR Manager (Human Resources)",
+  "Frontend Developer",
+  
   "Operations Manager (Operations)",
   "Customer Support (Service)",
 ]
@@ -62,7 +70,7 @@ export function PrepForm() {
     // @ts-expect-error Zod typing issue with hookform resolvers
     resolver: zodResolver(prepSchema),
     defaultValues: {
-      name: "",
+      candidateName: "",
       experience: "",
       role: "",
     },
@@ -71,11 +79,11 @@ export function PrepForm() {
   const onSubmit = async (data: PrepType) => {
     setIsSubmittingForm(true)
     // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1500))
+   await createInterviewSession(data)
     console.log("Form Submitted:", data)
     setIsSubmittingForm(false)
     reset()
-    // router.push("/dashboard") // Add navigation when ready
+    router.push("/call") // Add navigation when ready
   }
 
   return (
@@ -111,12 +119,12 @@ export function PrepForm() {
                   type="text"
                   placeholder="Johnathan Doe"
                   className="h-14 rounded-2xl border-input bg-background/50 pr-12 text-base text-foreground shadow-sm transition-all focus:bg-background focus:ring-2 focus:ring-ring"
-                  {...register("name")}
+                  {...register("candidateName")}
                 />
                 <User className="absolute right-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
               </div>
-              {errors.name && (
-                <p className="text-sm text-red-500">{errors.name.message}</p>
+              {errors.candidateName && (
+                <p className="text-sm text-red-500">{errors.candidateName.message}</p>
               )}
             </div>
 
