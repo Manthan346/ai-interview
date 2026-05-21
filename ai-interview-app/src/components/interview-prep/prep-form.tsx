@@ -23,6 +23,11 @@ import { createInterviewSession } from "@/api"
 
 const ROLES = [
   "Software Engineer (IT)",
+  "Full stack developer",
+  "frontend developer",
+  "react.js developer",
+  "backend developer",
+  "java full stack developer",
   "Data Scientist (IT)",
   "web developer",
   "frontend developer",
@@ -59,6 +64,7 @@ const EXPERIENCES = [
 export function PrepForm() {
   const router = useRouter()
   const [isSubmittingForm, setIsSubmittingForm] = useState(false)
+  
 
   const {
     register,
@@ -77,13 +83,23 @@ export function PrepForm() {
   })
 
   const onSubmit = async (data: PrepType) => {
-    setIsSubmittingForm(true)
-    // Simulate API call
-   await createInterviewSession(data)
-    console.log("Form Submitted:", data)
-    setIsSubmittingForm(false)
-    reset()
-    router.push("/call") // Add navigation when ready
+   try {
+     setIsSubmittingForm(true)
+     // Simulate API call
+     await createInterviewSession(data)
+     console.log("Form Submitted:", data)
+     
+     reset()
+     router.push("/call")
+   } catch (error: any) {
+    console.log(error.message)
+
+    
+   } finally {
+    setIsSubmittingForm(false) 
+    reset({candidateName: "", experience: "", role: ""})
+   }
+    // router.push("/dashboard") // Add navigation when ready
   }
 
   return (

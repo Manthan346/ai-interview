@@ -1,11 +1,9 @@
 import Groq from "groq-sdk";
-import { createSystemPrompt } from "../prompt.js";
-import { ChatCompletionMessageParam } from "groq-sdk/resources/chat/completions.js";
+import { createEvaluationPrompt } from "../prompt.js";
 import dotenv from "dotenv";
 import { prisma } from "../lib/prisma.js";
 import { ApiError } from "../helpers/ApiError.js";
 import { AIAction } from "../types/interview-actions.types.js";
-import { parse } from "node:path";
 
 dotenv.config();
 
@@ -21,193 +19,88 @@ interface SessionDetail {
   interviewId: string;
 }
 
-type InterviewSessionState = {
-  messages: ChatCompletionMessageParam[];
-};
+export async function evaluateInterviewSession(
+  transcript: any[],
+  sessionDetail: SessionDetail
+) {
+  const { name, experience, role, interviewId } = sessionDetail;
 
-const interviewSessions = new Map<string, InterviewSessionState>();
-
-export async function createInterviewSession({
-  name,
-  experience,
-  role,
-  userId,
-  interviewId,
-}: SessionDetail) {
-
-  // get current interview
   const interviewDetail = await prisma.interview.findUnique({
-    where: {
-      id: interviewId,
-    },
+    where: { id: interviewId },
   });
 
   if (!interviewDetail) {
     throw new ApiError(404, "Interview detail not found");
   }
 
-  // using interviewId as session key
-  let session = interviewSessions.get(interviewId);
+  const systemPrompt = createEvaluationPrompt({ name, experience, role });
 
-  // create session only once
-  if (!session) {
-    session = {
-      messages: [
-        {
-          role: "system",
-          content: createSystemPrompt({
-            name,
-            experience,
-            role,
-          }),
-        },
-      ],
-    };
+  // Format the transcript nicely for Groq
+  const formattedTranscript = transcript
+    .map((msg) => `${msg.role === "assistant" ? "Assistant" : "User"}: ${msg.content}`)
+    .join("\n\n");
 
-    interviewSessions.set(interviewId, session);
+  const messages: any[] = [
+    { role: "system", content: systemPrompt },
+    { role: "user", content: `Here is the full interview transcript:\n\n${formattedTranscript}` },
+  ];
+
+  console.log("Evaluating interview transcript with Groq...");
+
+  const res = await groq.chat.completions.create({
+    model: "llama-3.3-70b-versatile", // Using a stable 70b model for high quality eval
+    messages,
+    response_format: { type: "json_object" },
+  });
+
+  const aiContent = res.choices[0].message.content;
+
+  if (!aiContent) {
+    throw new ApiError(500, "AI returned empty response");
   }
 
-  async function sendMessage(text: string, onSentence?: (sentence: string) => void) {
+  let parsed: AIAction;
 
-    // push user message
-    session!.messages.push({
-      role: "user",
-      content: text,
-    });
+  try {
+    parsed = JSON.parse(aiContent) as AIAction;
+  } catch {
+    throw new ApiError(500, "AI response is not valid JSON");
+  }
 
-    // ai response
-    const res = await groq.chat.completions.create({
-      model: "openai/gpt-oss-120b", // Using a valid Groq model
-
-      messages: session!.messages,
-
-      response_format: { 
-        type: "json_object",
+  if (parsed.action === "END_INTERVIEW") {
+    await prisma.interview.update({
+      where: { id: interviewId },
+      data: {
+        overallScore: parsed.overallScore,
+        summary: parsed.summary,
+        strengths: parsed.strengths,
+        weaknesses: parsed.weaknesses,
+        improvements: parsed.improvements,
+        finalInterviewVerdict: parsed.finalInterviewVerdict,
+        candidatePerspective: parsed.candidatePerspective,
+        selectionChances: parsed.selectionChances,
       },
-      stream: true,
     });
 
-    let aiContent = "";
-    let emittedSentencesCount = 0;
-
-    for await (const chunk of res) {
-      const delta = chunk.choices[0]?.delta?.content || "";
-      aiContent += delta;
-
-      if (onSentence) {
-        const questionMatch = aiContent.match(/"question"\s*:\s*"((?:[^"\\]|\\.)*)/);
-        if (questionMatch) {
-          const currentQuestionStr = questionMatch[1];
-          const decodedStr = currentQuestionStr.replace(/\\"/g, '"').replace(/\\n/g, '\n').replace(/\\\\/g, '\\');
-          
-          const completeSentences = decodedStr.match(/[^.!?]+[.!?]+/g) || [];
-          
-          while (emittedSentencesCount < completeSentences.length) {
-            const sentenceToEmit = completeSentences[emittedSentencesCount].trim();
-            if (sentenceToEmit) {
-              onSentence(sentenceToEmit);
-            }
-            emittedSentencesCount++;
-          }
-        }
-      }
+    if (parsed.questionEvaluations && parsed.questionEvaluations.length > 0) {
+      await prisma.question.createMany({
+        data: parsed.questionEvaluations.map((ev) => ({
+          interviewId: interviewId,
+          questions: ev.question,
+          userAnswerSummary: ev.userAnswerSummary,
+          expectedAnswer: ev.expectedAnswer,
+          score: ev.score,
+          feedback: ev.feedback,
+          whatWasMissing: ev.whatWasMissing,
+          whatInterviewersWouldThink: ev.whatInterviewersWouldThink,
+          betterAnswerOutline: ev.betterAnswerOutline,
+        })),
+      });
     }
 
-    if (!aiContent) { 
-      throw new ApiError(500, "AI returned empty response");
-    }
-
-    let parsed: AIAction;
-
-    // parse ai json
-    try {
-      parsed = JSON.parse(aiContent) as AIAction;
-    } catch {
-      throw new ApiError(500, "AI response is not valid JSON");
-    }
-
-    // store assistant response in memory
-    session!.messages.push({
-      role: "assistant",
-      content: aiContent,
-    });
-    console.log(aiContent)
-
-    switch (parsed.action) {
-
-      // new question
-      case "ASK_QUESTION": 
-      case "FOLLOW_UP": {
-        const finalQuestion = parsed.question || "";
-        const completeSentences = finalQuestion.match(/[^.!?]+[.!?]+/g) || [];
-        const emittedLength = completeSentences.join("").length;
-        const remainingText = finalQuestion.substring(emittedLength).trim();
-        if (remainingText && onSentence) {
-          onSentence(remainingText);
-        }
-
-        return {
-          raw: aiContent,
-          parsed,
-        };
-      }
-
-      // end interview
-      case "END_INTERVIEW": {
-
-        await prisma.interview.update({
-          where: {
-            id: interviewDetail!.id,
-          },
-
-          data: {
-            overallScore: parsed.overallScore,
-            summary: parsed.summary,
-            strengths: parsed.strengths,
-            weaknesses: parsed.weaknesses,
-            improvements: parsed.improvements,
-            finalInterviewVerdict: parsed.finalInterviewVerdict,
-            candidatePerspective: parsed.candidatePerspective,
-            selectionChances: parsed.selectionChances,
-          },
-        }); 
-
-        // batch save question evaluations 
-        if (parsed.questionEvaluations && parsed.questionEvaluations.length > 0) {
-          await prisma.question.createMany({
-            data: parsed.questionEvaluations.map(ev => ({
-              interviewId: interviewDetail!.id, 
-              questions: ev.question,
-              userAnswerSummary: ev.userAnswerSummary,
-              expectedAnswer: ev.expectedAnswer,
-              score: ev.score, 
-              feedback: ev.feedback,
-              whatWasMissing: ev.whatWasMissing,
-              whatInterviewersWouldThink: ev.whatInterviewersWouldThink,
-              betterAnswerOutline: ev.betterAnswerOutline
-            }))
-          });
-        }
-
-        // clear memory
-        interviewSessions.delete(interviewId);
-
-        return {
-          raw: aiContent,
-          parsed,
-        };
-      }
-
-      default:
-        throw new ApiError(
-          400,
-          "Unknown AI action"
-        );
-    }
+    console.log(`Interview ${interviewId} evaluated successfully.`);
+    return parsed;
+  } else {
+    throw new ApiError(400, "Unknown AI action from evaluation");
   }
-
-  return {
-    sendMessage,
-    messages: session.messages,
-  };
 }

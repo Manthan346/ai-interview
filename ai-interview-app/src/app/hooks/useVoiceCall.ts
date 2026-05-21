@@ -14,42 +14,55 @@ export const useVoiceCall = () => {
 
   const audioContextRef = useRef<AudioContext | null>(null);
   const nextStartTimeRef = useRef<number>(0);
-
-  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const mediaStreamRef = useRef<MediaStream | null>(null);
-
-
-  const handleDataAvailable = (event: BlobEvent) => {
-    if (event.data.size > 0 && socketRef.current?.connected) {
-      socketRef.current.emit("audio-chunk", event.data);
-    }
-  };
+  const audioProcessorRef = useRef<ScriptProcessorNode | null>(null);
 
   const handleAudio = async () => {
     try {
-      setIsMicOn((prev) => !prev);
+      if (!isMicOn) {
+        // Turning ON the microphone
+        if (!mediaStreamRef.current) {
+          const stream = await navigator.mediaDevices.getUserMedia({
+            audio: true,
+          });
 
-      if (!mediaStreamRef.current) {
-        const stream = await navigator.mediaDevices.getUserMedia({
-          audio: true,
-        });
+          mediaStreamRef.current = stream;
 
-        mediaStreamRef.current = stream;
+          const context = audioContextRef.current || new (window.AudioContext || (window as any).webkitAudioContext)();
+          audioContextRef.current = context;
 
-        const recorder = new MediaRecorder(stream, {
-          mimeType: "audio/webm;codecs=opus",
-        });
+          const source = context.createMediaStreamSource(stream);
+          const processor = context.createScriptProcessor(4096, 1, 1);
+          audioProcessorRef.current = processor;
 
-        recorder.ondataavailable = handleDataAvailable;
-        mediaRecorderRef.current = recorder;
-      }
+          processor.onaudioprocess = (event) => {
+            if (socketRef.current?.connected) {
+              const audioData = event.inputBuffer.getChannelData(0);
+              const pcmData = new Int16Array(audioData.length);
 
-      const recorder = mediaRecorderRef.current;
+              // Convert float32 to int16
+              for (let i = 0; i < audioData.length; i++) {
+                const s = Math.max(-1, Math.min(1, audioData[i]));
+                pcmData[i] = s < 0 ? s * 0x8000 : s * 0x7FFF;
+              }
 
-      if (recorder?.state === "inactive") {
-        recorder.start(100);
-      } else if (recorder?.state === "recording") {
-        recorder.stop();
+              socketRef.current.emit("audio-chunk", Buffer.from(pcmData.buffer));
+            }
+          };
+
+          source.connect(processor);
+          processor.connect(context.destination);
+        }
+        if (audioProcessorRef.current) {
+          audioProcessorRef.current.connect(audioContextRef.current!.destination);
+        }
+        setIsMicOn(true);
+      } else {
+        // Turning OFF the microphone
+        if (audioProcessorRef.current) {
+          audioProcessorRef.current.disconnect();
+        }
+        setIsMicOn(false);
       }
     } catch (error) {
       console.log("Mic error:", error);
@@ -59,7 +72,9 @@ export const useVoiceCall = () => {
   const handleEndCall = () => {
     setIsCallActive(false);
 
-    mediaRecorderRef.current?.stop();
+    if (audioProcessorRef.current) {
+      audioProcessorRef.current.disconnect();
+    }
 
     mediaStreamRef.current
       ?.getTracks()
@@ -69,6 +84,7 @@ export const useVoiceCall = () => {
       audioContextRef.current.close();
       audioContextRef.current = null;
     }
+    nextStartTimeRef.current = 0;
     setAiSpeaking(false);
     setIsAiThinking(false);
 
@@ -97,63 +113,43 @@ export const useVoiceCall = () => {
       setIsAiThinking(true);
     });
 
-    const pcm16ToFloat32 = (buffer: ArrayBuffer) => {
-      const view = new DataView(buffer);
-      const length = buffer.byteLength / 2;
-      const float32 = new Float32Array(length);
-
-      for (let i = 0; i < length; i += 1) {
-        float32[i] = view.getInt16(i * 2, true) / 32768;
-      }
-
-      return float32;
-    };
-
-    socket.on("audio-response", async (message) => {
-      const { audioData, sampleRate = 24000, channels = 1 } = message as {
-        audioData: ArrayBuffer | ArrayBufferView;
-        sampleRate?: number;
-        channels?: number;
-      };
-
+    socket.on("audio-response", (audioData) => {
       const context = audioContextRef.current || new (window.AudioContext || (window as any).webkitAudioContext)();
       audioContextRef.current = context;
 
       try {
-        await context.resume();
+        const arrayBuffer = audioData instanceof ArrayBuffer ? audioData : new Uint8Array(audioData).buffer;
+        
+        // Deepgram linear16 is 16-bit signed integer PCM
+        const int16Array = new Int16Array(arrayBuffer);
+        const float32Array = new Float32Array(int16Array.length);
 
-        const arrayBuffer = audioData instanceof ArrayBuffer ? audioData : ((audioData as ArrayBufferView).buffer as ArrayBuffer);
-        const float32Array = pcm16ToFloat32(arrayBuffer);
-
-        const channelCount = Math.max(1, channels);
-        const frameCount = float32Array.length / channelCount;
-        const audioBufferObj = context.createBuffer(channelCount, frameCount, sampleRate);
-
-        if (channelCount === 1) {
-          audioBufferObj.copyToChannel(float32Array, 0, 0);
-        } else {
-          for (let channel = 0; channel < channelCount; channel += 1) {
-            const channelData = audioBufferObj.getChannelData(channel);
-            let offset = channel;
-            for (let i = 0; i < frameCount; i += 1) {
-              channelData[i] = float32Array[offset];
-              offset += channelCount;
-            }
-          }
+        // Web Audio API uses Float32 between -1.0 and 1.0
+        for (let i = 0; i < int16Array.length; i++) { 
+          float32Array[i] = int16Array[i] / 32768.0;
         }
 
+        // Create an AudioBuffer (1 channel, sample rate 24000)
+        const audioBuffer = context.createBuffer(1, float32Array.length, 24000);
+        audioBuffer.getChannelData(0).set(float32Array);
+
         const source = context.createBufferSource();
-        source.buffer = audioBufferObj;
+        source.buffer = audioBuffer;
         source.connect(context.destination);
 
-        const currentTime = context.currentTime;
-        const startTime = Math.max(nextStartTimeRef.current, currentTime + 0.05);
+        // Schedule exactly
+        let startTime = nextStartTimeRef.current;
+        if (startTime < context.currentTime) {
+          startTime = context.currentTime + 0.1; // buffer slightly
+        }
+
         source.start(startTime);
-        nextStartTimeRef.current = startTime + audioBufferObj.duration;
+        nextStartTimeRef.current = startTime + audioBuffer.duration;
 
         setAiSpeaking(true);
         setIsAiThinking(false);
-
+        
+        // When this specific chunk ends, check if it was the last scheduled one
         source.onended = () => {
           if (context.currentTime >= nextStartTimeRef.current - 0.1) {
             setAiSpeaking(false);
@@ -166,6 +162,16 @@ export const useVoiceCall = () => {
 
     socket.on("error-message", (msg) => {
       console.log("Socket error:", msg);
+      setIsAiThinking(false);
+    });
+
+    socket.on("clear-audio", () => {
+      if (audioContextRef.current) {
+        audioContextRef.current.close();
+        audioContextRef.current = null;
+        nextStartTimeRef.current = 0;
+        setAiSpeaking(false);
+      }
     });
 
     socket.on("disconnect", () => {
