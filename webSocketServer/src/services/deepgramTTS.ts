@@ -71,54 +71,48 @@
 
 import { DeepgramClient } from "@deepgram/sdk";
 
-export async function DeepgramTTS(
-  text: string,
+export const createTTSConnection = async (
   onAudioData: (buffer: Buffer) => void
-): Promise<void> {
+) => {
   const client = new DeepgramClient();
 
-  return new Promise(async (resolve, reject) => {
-    // @ts-ignore
-    const connection = await client.speak.v1.createConnection({
-      model: "aura-2-thalia-en",
-      encoding: "linear16",
-      sample_rate: 24000,
-    });
-
-    connection.on("message", async (data: any) => {
-      if (data instanceof ArrayBuffer) { 
-        onAudioData(Buffer.from(data));
-      } else if (Buffer.isBuffer(data)) {
-        onAudioData(data);
-        console.log(data)
-      } else if (data && typeof data.arrayBuffer === "function") {
-        try {
-          const arrayBuffer = await data.arrayBuffer();
-          onAudioData(Buffer.from(arrayBuffer));
-        } catch (err) {
-          console.error("Failed to convert TTS Blob:", err);
-        }
-      } else if (data && data.type === "Flushed") {
-        setTimeout(() => {
-          connection.close();
-          resolve();
-        }, 500);
-      }
-    });
-
-    connection.on("error", (err: any) => {
-      console.error("TTS WebSocket Error:", err);
-      reject(err);
-    });
-
-    connection.connect();
-    // @ts-ignore
-    await connection.waitForOpen();
-
-    connection.sendText({ type: "Speak", text });
-    connection.sendFlush({ type: "Flush" });
+  // @ts-ignore
+  const connection = await client.speak.v1.createConnection({
+    model: "aura-2-thalia-en",
+    encoding: "linear16",
+    sample_rate: 24000,
   });
-}
 
+  connection.on("message", async (data: any) => {
+    if (data instanceof ArrayBuffer) { 
+      onAudioData(Buffer.from(data));
+    } else if (Buffer.isBuffer(data)) {
+      onAudioData(data);
+    } else if (data && typeof data.arrayBuffer === "function") {
+      try {
+        const arrayBuffer = await data.arrayBuffer();
+        onAudioData(Buffer.from(arrayBuffer));
+      } catch (err) {
+        console.error("Failed to convert TTS Blob:", err);
+      }
+    }
+  });
 
+  connection.on("error", (err: any) => {
+    console.error("TTS WebSocket Error:", err);
+  });
 
+  connection.connect();
+  // @ts-ignore
+  await connection.waitForOpen();
+
+  return {
+    speak: (text: string) => {
+      connection.sendText({ type: "Speak", text });
+      connection.sendFlush({ type: "Flush" });
+    },
+    close: () => {
+      connection.close();
+    }
+  };
+};

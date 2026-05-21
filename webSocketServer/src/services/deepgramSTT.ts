@@ -6,13 +6,14 @@ export const createDeepgramConnection = async (
   const deepgram = new DeepgramClient({
     apiKey: process.env.DEEPGRAM_API_KEY!,
   });
-
+  
+//@ts-ignore
   const dgSocket = await deepgram.listen.v1.createConnection({
     model: "nova-3",
     language: "en",
     interim_results: "true",
-    endpointing: 500,
-    utterance_end_ms: "1500", 
+    endpointing: 300,
+    utterance_end_ms: "1000", 
     keyterm: [
       "MERN Stack",
       "React",

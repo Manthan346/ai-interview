@@ -67,7 +67,7 @@ export async function createInterviewSession({
     interviewSessions.set(interviewId, session);
   }
 
-  async function sendMessage(text: string) {
+  async function sendMessage(text: string, onSentence?: (sentence: string) => void) {
 
     // push user message
     session!.messages.push({
@@ -77,16 +77,41 @@ export async function createInterviewSession({
 
     // ai response
     const res = await groq.chat.completions.create({
-      model: "openai/gpt-oss-120b",
+      model: "openai/gpt-oss-120b", // Using a valid Groq model
 
       messages: session!.messages,
 
       response_format: { 
         type: "json_object",
       },
+      stream: true,
     });
 
-    const aiContent = res.choices[0].message.content; 
+    let aiContent = "";
+    let emittedSentencesCount = 0;
+
+    for await (const chunk of res) {
+      const delta = chunk.choices[0]?.delta?.content || "";
+      aiContent += delta;
+
+      if (onSentence) {
+        const questionMatch = aiContent.match(/"question"\s*:\s*"((?:[^"\\]|\\.)*)/);
+        if (questionMatch) {
+          const currentQuestionStr = questionMatch[1];
+          const decodedStr = currentQuestionStr.replace(/\\"/g, '"').replace(/\\n/g, '\n').replace(/\\\\/g, '\\');
+          
+          const completeSentences = decodedStr.match(/[^.!?]+[.!?]+/g) || [];
+          
+          while (emittedSentencesCount < completeSentences.length) {
+            const sentenceToEmit = completeSentences[emittedSentencesCount].trim();
+            if (sentenceToEmit) {
+              onSentence(sentenceToEmit);
+            }
+            emittedSentencesCount++;
+          }
+        }
+      }
+    }
 
     if (!aiContent) { 
       throw new ApiError(500, "AI returned empty response");
@@ -111,15 +136,16 @@ export async function createInterviewSession({
     switch (parsed.action) {
 
       // new question
-      case "ASK_QUESTION": {
-        return {
-          raw: aiContent,
-          parsed,
-        };
-      }
-
-      // follow up question
+      case "ASK_QUESTION": 
       case "FOLLOW_UP": {
+        const finalQuestion = parsed.question || "";
+        const completeSentences = finalQuestion.match(/[^.!?]+[.!?]+/g) || [];
+        const emittedLength = completeSentences.join("").length;
+        const remainingText = finalQuestion.substring(emittedLength).trim();
+        if (remainingText && onSentence) {
+          onSentence(remainingText);
+        }
+
         return {
           raw: aiContent,
           parsed,

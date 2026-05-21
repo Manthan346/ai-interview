@@ -4,7 +4,7 @@ import { Server } from "socket.io";
 
 import { createDeepgramConnection } from "../services/deepgramSTT";
 import { createInterviewSession } from "../services/LLMCalling";
-import { DeepgramTTS } from "../services/deepgramTTS";
+import { createTTSConnection } from "../services/deepgramTTS";
 import { TokenPayload } from "../interfaces/jwt.interface";
 import {prisma} from "../lib/prisma"
 import { ApiError } from "../helpers/ApiError";
@@ -69,10 +69,27 @@ export const startSocket = (server: HttpServer) => {
     
    
 
+    // create persistent TTS connection
+    const ttsConnection = await createTTSConnection((audioData) => {
+      socket.emit("audio-response", {
+        audioData,
+        sampleRate: 24000,
+        channels: 1,
+      });
+    });
+
     //creating stt connection 
     const dgSocket = await createDeepgramConnection(
       async (transcript: string) => { 
         try {
+          // send transcript immediately
+          socket.emit("transcript", {
+            type: "transcript",
+            text: transcript,
+            final: true,
+          });
+          socket.emit("ai-thinking");
+
           console.log("Processing complete utterance:", transcript);
 
           const response = await createInterviewSession({
@@ -82,46 +99,17 @@ export const startSocket = (server: HttpServer) => {
             userId: user.id,
             interviewId: interviewDetail!.id
           });
-          //breaking the response into multiple piceses using (.)
-          const sentences =
-            await response.sendMessage(transcript)
+          const sentences = await response.sendMessage(transcript, (sentence) => {
+            ttsConnection.speak(sentence);
+          });
 
-let finalQuestion = "";
-
-switch (sentences.parsed.action) {
-  case "ASK_QUESTION":
-  case "FOLLOW_UP":
-    finalQuestion = sentences.parsed.question;
-    break;
-
-  case "END_INTERVIEW": 
-    socket.disconnect();
-    break;
-}
-
-  const chunks =
-    finalQuestion.match(/[^.!?]+[.!?]?/g) || [finalQuestion];
-
-  for (const chunk of chunks) {
- 
-    const cleanChunk = chunk.trim();
-
-    if (!cleanChunk) continue;
-
-    await DeepgramTTS(cleanChunk, (audioData) => {
-      socket.emit("audio-response", audioData);
-    });
-  }
+          if (sentences.parsed.action === "END_INTERVIEW") {
+            socket.disconnect();
+          }
 
 
          
 
-          // send transcript
-          socket.emit("transcript", {
-            type: "transcript",
-            text: transcript,
-            final: true,
-          });
         } catch (error) {
           console.log("AI processing error:", error);
           socket.emit("error-message", "Failed to process transcript");
@@ -147,15 +135,28 @@ switch (sentences.parsed.action) {
         dgSocket.sendCloseStream({ 
           type: "CloseStream",
         });
-      } catch {}
+      } catch(error: any) {
+        throw new ApiError(400, error.message)
+
+      }
 
       try {
         dgSocket.close();
-      } catch {}
+      } catch(error: any) {
+        throw new ApiError(400, error.message)
+
+      }
+
+      try {
+        ttsConnection.close();
+      } catch(error: any) {
+        throw new ApiError(400, error.message)
+
+      }
     });
 
     socket.on("connect_error", (err) => { 
-      console.log("Socket error:", err);
+      console.log("Socket error:", err.message);
     });
   });
 
