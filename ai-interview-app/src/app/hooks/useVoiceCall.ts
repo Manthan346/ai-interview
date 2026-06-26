@@ -2,67 +2,77 @@ import { useState, useRef, useEffect } from "react";
 
 import { io, Socket } from "socket.io-client";
 
+import { TranscriptProps, userTranscript } from "../types/interview";
+import { useRouter } from "next/navigation";
+
 export const useVoiceCall = () => {
-  
+
 
   const [isMicOn, setIsMicOn] = useState(false);
   const [isCallActive, setIsCallActive] = useState(true);
   const [aiSpeaking, setAiSpeaking] = useState(false);
   const [isAiThinking, setIsAiThinking] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("")
+  const [conversation, setConversation] = useState<TranscriptProps>({})
 
   const socketRef = useRef<Socket | null>(null);
 
   const audioContextRef = useRef<AudioContext | null>(null);
   const nextStartTimeRef = useRef<number>(0);
+  const audioSourcesRef = useRef<AudioBufferSourceNode[]>([]);
+
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const mediaStreamRef = useRef<MediaStream | null>(null);
-  const audioProcessorRef = useRef<ScriptProcessorNode | null>(null);
+  const router = useRouter()
+
+  const stopAllAiAudio = () => {
+    audioSourcesRef.current.forEach((source) => {
+      try {
+        source.stop();
+      } catch (_err) {
+        // ignore already stopped sources
+      }
+      source.disconnect();
+    });
+    audioSourcesRef.current = [];
+    nextStartTimeRef.current = 0;
+    setAiSpeaking(false);
+  };
+
+  const handleDataAvailable = (event: BlobEvent) => {
+    if (event.data.size > 0 && socketRef.current?.connected) {
+      socketRef.current.emit("audio-chunk", event.data);
+    }
+  };
 
   const handleAudio = async () => {
     try {
-      if (!isMicOn) {
-        // Turning ON the microphone
-        if (!mediaStreamRef.current) {
-          const stream = await navigator.mediaDevices.getUserMedia({
-            audio: true,
-          });
+      const isStartingRecording = !isMicOn;
+      setIsMicOn(isStartingRecording);
 
-          mediaStreamRef.current = stream;
+      if (!mediaStreamRef.current) {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          audio: true,
+        });
 
-          const context = audioContextRef.current || new (window.AudioContext || (window as any).webkitAudioContext)();
-          audioContextRef.current = context;
+        mediaStreamRef.current = stream;
 
-          const source = context.createMediaStreamSource(stream);
-          const processor = context.createScriptProcessor(4096, 1, 1);
-          audioProcessorRef.current = processor;
+        const recorder = new MediaRecorder(stream, {
+          mimeType: "audio/webm;codecs=opus",
+        });
 
-          processor.onaudioprocess = (event) => {
-            if (socketRef.current?.connected) {
-              const audioData = event.inputBuffer.getChannelData(0);
-              const pcmData = new Int16Array(audioData.length);
+        recorder.ondataavailable = handleDataAvailable;
+        mediaRecorderRef.current = recorder;
+      }
 
-              // Convert float32 to int16
-              for (let i = 0; i < audioData.length; i++) {
-                const s = Math.max(-1, Math.min(1, audioData[i]));
-                pcmData[i] = s < 0 ? s * 0x8000 : s * 0x7FFF;
-              }
+      const recorder = mediaRecorderRef.current;
 
-              socketRef.current.emit("audio-chunk", Buffer.from(pcmData.buffer));
-            }
-          };
-
-          source.connect(processor);
-          processor.connect(context.destination);
-        }
-        if (audioProcessorRef.current) {
-          audioProcessorRef.current.connect(audioContextRef.current!.destination);
-        }
-        setIsMicOn(true);
-      } else {
-        // Turning OFF the microphone
-        if (audioProcessorRef.current) {
-          audioProcessorRef.current.disconnect();
-        }
-        setIsMicOn(false);
+      if (isStartingRecording) {
+        stopAllAiAudio();
+        setIsAiThinking(false);
+        recorder?.start(100);
+      } else if (recorder?.state === "recording") {
+        recorder.stop();
       }
     } catch (error) {
       console.log("Mic error:", error);
@@ -72,9 +82,7 @@ export const useVoiceCall = () => {
   const handleEndCall = () => {
     setIsCallActive(false);
 
-    if (audioProcessorRef.current) {
-      audioProcessorRef.current.disconnect();
-    }
+    mediaRecorderRef.current?.stop();
 
     mediaStreamRef.current
       ?.getTracks()
@@ -84,7 +92,6 @@ export const useVoiceCall = () => {
       audioContextRef.current.close();
       audioContextRef.current = null;
     }
-    nextStartTimeRef.current = 0;
     setAiSpeaking(false);
     setIsAiThinking(false);
 
@@ -92,11 +99,11 @@ export const useVoiceCall = () => {
   };
 
   useEffect(() => {
-   
+
 
     const socket = io("http://localhost:3001", {
       transports: ["websocket"],
-     
+
     });
 
     socketRef.current = socket;
@@ -105,53 +112,97 @@ export const useVoiceCall = () => {
       console.log("Socket connected:", socket.id);
     });
 
-    socket.on("transcript", (data) => {
+    socket.on("transcript", (data: userTranscript) => {
       console.log("Transcript:", data);
+      if (data) {
+        // merge incoming transcript into conversation state
+        setConversation((userconvo) => ({ ...userconvo, userText: data.text }));
+      }
     });
 
     socket.on("ai-thinking", () => {
       setIsAiThinking(true);
     });
 
-    socket.on("audio-response", (audioData) => {
+    socket.on("audio-response-start", (data: string) => {
+      setConversation((aiConvo) => ({ ...aiConvo, aiText: data }))
+      stopAllAiAudio();
+      setIsAiThinking(false);
+    });
+
+    socket.on("interview-ended", (data) => {
+      setTimeout(()=> {
+        const RP=  router.push(`/dashboard/your-session/evaluation/${data.interviewId}`)
+      console.log(RP)
+
+      }, 10000)
+    
+
+
+
+    })
+
+    const pcm16ToFloat32 = (buffer: ArrayBuffer) => {
+      const view = new DataView(buffer);
+      const length = buffer.byteLength / 2;
+      const float32 = new Float32Array(length);
+
+      for (let i = 0; i < length; i += 1) {
+        float32[i] = view.getInt16(i * 2, true) / 32768;
+      }
+
+      return float32;
+    };
+
+    socket.on("audio-response", async (message) => {
+      const { audioData, sampleRate = 24000, channels = 1 } = message as {
+        audioData: ArrayBuffer | ArrayBufferView;
+        sampleRate?: number;
+        channels?: number;
+      };
+
       const context = audioContextRef.current || new (window.AudioContext || (window as any).webkitAudioContext)();
       audioContextRef.current = context;
 
       try {
-        const arrayBuffer = audioData instanceof ArrayBuffer ? audioData : new Uint8Array(audioData).buffer;
-        
-        // Deepgram linear16 is 16-bit signed integer PCM
-        const int16Array = new Int16Array(arrayBuffer);
-        const float32Array = new Float32Array(int16Array.length);
+        await context.resume();
 
-        // Web Audio API uses Float32 between -1.0 and 1.0
-        for (let i = 0; i < int16Array.length; i++) { 
-          float32Array[i] = int16Array[i] / 32768.0;
+        const arrayBuffer = audioData instanceof ArrayBuffer ? audioData : ((audioData as ArrayBufferView).buffer as ArrayBuffer);
+        const float32Array = pcm16ToFloat32(arrayBuffer);
+
+        const channelCount = Math.max(1, channels);
+        const frameCount = float32Array.length / channelCount;
+        const audioBufferObj = context.createBuffer(channelCount, frameCount, sampleRate);
+
+        if (channelCount === 1) {
+          audioBufferObj.copyToChannel(float32Array, 0, 0);
+        } else {
+          for (let channel = 0; channel < channelCount; channel += 1) {
+            const channelData = audioBufferObj.getChannelData(channel);
+            let offset = channel;
+            for (let i = 0; i < frameCount; i += 1) {
+              channelData[i] = float32Array[offset];
+              offset += channelCount;
+            }
+          }
         }
-
-        // Create an AudioBuffer (1 channel, sample rate 24000)
-        const audioBuffer = context.createBuffer(1, float32Array.length, 24000);
-        audioBuffer.getChannelData(0).set(float32Array);
 
         const source = context.createBufferSource();
-        source.buffer = audioBuffer;
+        source.buffer = audioBufferObj;
         source.connect(context.destination);
 
-        // Schedule exactly
-        let startTime = nextStartTimeRef.current;
-        if (startTime < context.currentTime) {
-          startTime = context.currentTime + 0.1; // buffer slightly
-        }
-
+        const currentTime = context.currentTime;
+        const startTime = Math.max(nextStartTimeRef.current, currentTime + 0.05);
         source.start(startTime);
-        nextStartTimeRef.current = startTime + audioBuffer.duration;
+        nextStartTimeRef.current = startTime + audioBufferObj.duration;
+        audioSourcesRef.current.push(source);
 
         setAiSpeaking(true);
         setIsAiThinking(false);
-        
-        // When this specific chunk ends, check if it was the last scheduled one
+
         source.onended = () => {
-          if (context.currentTime >= nextStartTimeRef.current - 0.1) {
+          audioSourcesRef.current = audioSourcesRef.current.filter((item) => item !== source);
+          if (!audioSourcesRef.current.length) {
             setAiSpeaking(false);
           }
         };
@@ -159,19 +210,23 @@ export const useVoiceCall = () => {
         console.error("Audio playback error:", err);
       }
     });
+    socket.on("connect_error", (err) => {
+      console.log(err.message)
+      setErrorMsg(err.message)
+    }
+    
+
+
+
+    )
+
 
     socket.on("error-message", (msg) => {
-      console.log("Socket error:", msg);
-      setIsAiThinking(false);
-    });
-
-    socket.on("clear-audio", () => {
-      if (audioContextRef.current) {
-        audioContextRef.current.close();
-        audioContextRef.current = null;
-        nextStartTimeRef.current = 0;
-        setAiSpeaking(false);
-      }
+      
+      console.log("Socket error:", msg.message);
+      setErrorMsg(msg.message)
+      
+    
     });
 
     socket.on("disconnect", () => {
@@ -190,5 +245,7 @@ export const useVoiceCall = () => {
     isAiThinking,
     handleAudio,
     handleEndCall,
+    conversation,
+    errorMsg
   };
-};
+}; 

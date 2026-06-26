@@ -23,11 +23,6 @@ import { createInterviewSession } from "@/api"
 
 const ROLES = [
   "Software Engineer (IT)",
-  "Full stack developer",
-  "frontend developer",
-  "react.js developer",
-  "backend developer",
-  "java full stack developer",
   "Data Scientist (IT)",
   "web developer",
   "frontend developer",
@@ -61,10 +56,11 @@ const EXPERIENCES = [
   "10+ years",
 ]
 
+const QUESTION_COUNTS = [5, 10, 15, 20, 25, 30]
+
 export function PrepForm() {
   const router = useRouter()
   const [isSubmittingForm, setIsSubmittingForm] = useState(false)
-  
 
   const {
     register,
@@ -79,27 +75,18 @@ export function PrepForm() {
       candidateName: "",
       experience: "",
       role: "",
+      numberOfQuestions: 5,
     },
   })
 
   const onSubmit = async (data: PrepType) => {
-   try {
-     setIsSubmittingForm(true)
-     // Simulate API call
-     await createInterviewSession(data)
-     console.log("Form Submitted:", data)
-     
-     reset()
-     router.push("/call")
-   } catch (error: any) {
-    console.log(error.message)
-
-    
-   } finally {
-    setIsSubmittingForm(false) 
-    reset({candidateName: "", experience: "", role: ""})
-   }
-    // router.push("/dashboard") // Add navigation when ready
+    setIsSubmittingForm(true)
+    // Simulate API call
+   await createInterviewSession(data)
+    console.log("Form Submitted:", data)
+    setIsSubmittingForm(false)
+    reset()
+    router.push("/call") // Add navigation when ready
   }
 
   return (
@@ -134,7 +121,7 @@ export function PrepForm() {
                 <Input
                   type="text"
                   placeholder="Johnathan Doe"
-                  className="h-14 rounded-2xl border-input bg-background/50 pr-12 text-base text-foreground shadow-sm transition-all focus:bg-background focus:ring-2 focus:ring-ring"
+                  className="h-14 rounded-2xl border border-input bg-background/10 text-base text-foreground shadow-sm transition-all focus:border-transparent focus:bg-background/20  dark:bg-background/20 pr-12"
                   {...register("candidateName")}
                 />
                 <User className="absolute right-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
@@ -154,7 +141,7 @@ export function PrepForm() {
                 name="experience"
                 render={({ field }) => (
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <SelectTrigger className="h-14 p-7 w-full rounded-2xl border border-input bg-background/50 text-base text-foreground shadow-sm transition-all focus:bg-background focus:ring-2 focus:ring-ring">
+                    <SelectTrigger className="h-14 p-7 w-full rounded-2xl border border-input bg-background/10 text-base text-foreground shadow-sm transition-all focus:border-transparent focus:bg-background/20  dark:bg-background/20">
                       <SelectValue placeholder="Select experience" />
                     </SelectTrigger>
                     <SelectContent  className="w-full rounded-2xl  border-input bg-card">
@@ -186,7 +173,7 @@ export function PrepForm() {
               name="role"
               render={({ field }) => (
                 <Select onValueChange={field.onChange} defaultValue={field.value}>
-                  <SelectTrigger className="h-14 w-full rounded-2xl border p-7 border-input bg-background/50 text-base text-foreground shadow-sm transition-all focus:bg-background focus:ring-2 focus:ring-ring">
+                  <SelectTrigger className="h-14 w-full rounded-2xl border p-7 border-input bg-background/10 text-base text-foreground shadow-sm transition-all focus:border-transparent focus:bg-background/20  dark:bg-background/20">
                     <SelectValue placeholder="e.g. Senior Product Designer" />
                   </SelectTrigger>
                  
@@ -206,6 +193,44 @@ export function PrepForm() {
             />
             {errors.role && (
               <p className="text-sm text-red-500">{errors.role.message}</p>
+            )}
+          </div>
+
+          {/* Number of Questions */}
+          <div className="space-y-2">
+            <label className="text-sm font-semibold text-foreground">
+              Number of Questions
+            </label>
+            <Controller
+              control={control}
+              name="numberOfQuestions"
+              render={({ field }) => (
+                <Select
+                  onValueChange={(value) => field.onChange(Number(value))}
+                  defaultValue={String(field.value)}
+                >
+                  <SelectTrigger className="h-14 w-full rounded-2xl border p-7 border-input bg-background/10 text-base text-foreground shadow-sm transition-all focus:border-transparent focus:bg-background/20 dark:bg-background/20">
+                    <SelectValue placeholder="Select number of questions" />
+                  </SelectTrigger>
+                  <SelectContent className="w-full rounded-2xl border-input bg-card">
+                    <SelectGroup>
+                      <SelectLabel className="ml-5">Question Count</SelectLabel>
+                      {QUESTION_COUNTS.map((count) => (
+                        <SelectItem
+                          key={count}
+                          value={String(count)}
+                          className="cursor-pointer rounded-2xl ml-5 text-foreground focus:bg-accent focus:text-accent-foreground"
+                        >
+                          {count}
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+              )}
+            />
+            {errors.numberOfQuestions && (
+              <p className="text-sm text-red-500">{errors.numberOfQuestions.message}</p>
             )}
           </div>
 

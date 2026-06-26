@@ -5,7 +5,14 @@ const menu_item = [
         title: "Schedule Session",
         icon: CalendarClock,
         href: "/dashboard/schedule-session"
+    },
+    
+        {
+        title: "your sessions",
+        icon: CalendarClock,
+        href: "/dashboard/schedule-session"
     }
+    
 ]
 
 

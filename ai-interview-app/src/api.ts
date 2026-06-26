@@ -6,6 +6,7 @@ import { getSession, useSession } from "next-auth/react";
 
 import { SignupType } from "./lib/zod/user-validation";
 import { PrepType } from "./lib/zod/prep-validation";
+import { ParamValue } from "next/dist/server/request/params";
 
 const backend = axios.create({
   baseURL: process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3001",
@@ -64,8 +65,15 @@ export const sendOtpToEmail = () => {
 }
 
 export const createInterviewSession = (sessionDetail: PrepType) => {
-  backend.post("/api/v1/session/create-session", sessionDetail)
+  return backend.post("/api/v1/interview/create-interview", sessionDetail)
+}
+
+export const interviewEvaluationById = (id: ParamValue) => {
+  return backend.get(`api/v1/interview/evaluation/${id}`)
 
 }
 
+export const  getIntrviewQuestionEvaluation = (id: ParamValue) => {
+  return backend.get(`api/v1/interview/questions/${id}`)
 
+}
