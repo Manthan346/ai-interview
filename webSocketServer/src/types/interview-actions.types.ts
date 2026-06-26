@@ -9,21 +9,24 @@ type FollowUpAction = {
   question: string;
 };
 
+export type CantContiueAction = {
+  action: "CANT_CONTINUE",
+  question: string
+}
+
 export type QuestionEvaluation = {
   question: string;
-  userAnswerSummary: string;
-  expectedAnswer: string;
+
+  expectedAnswer: string[];
   score: number;
-  feedback: string;
-  whatWasMissing: string;
-  whatInterviewersWouldThink: string;
-  betterAnswerOutline: string;
+ 
 };
 
 type EndInterviewAction =  {
   action: "END_INTERVIEW";
   questionEvaluations: QuestionEvaluation[]; 
   overallScore: number;
+  question: string
   summary: string;
   strengths: string[];
   weaknesses: string[];
@@ -35,5 +38,7 @@ type EndInterviewAction =  {
 
 export type AIAction =
   | AskQuestionAction
+  | CantContiueAction
   | FollowUpAction
-  | EndInterviewAction;
+  | EndInterviewAction
+  ;

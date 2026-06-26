@@ -9,4 +9,4 @@ userRouter.post("/register", createUser)
 userRouter.get("/send-email", sendOtpToEmail)
 userRouter.post("/verify-email", verifyEmail)
 
-export default userRouter 
+export default userRouter   

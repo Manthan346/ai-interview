@@ -23,16 +23,16 @@ const generateNewAccessAndRefreshToken = asyncHandler(async (req: authRequest, r
         
     }
     
-
+ 
     const decoded = jwt.verify(refreshToken, process.env.JWT_SECRET!) as TokenPayload
     const user = await prisma.user.findFirst({
-        where : {
-            id: decoded.id
+        where : { 
+            id: decoded.id 
         }
-    })
-    if (!user) {
+    }) 
+    if (!user) { 
         throw new ApiError(404, "user not found")
-        
+          
     }
     
 

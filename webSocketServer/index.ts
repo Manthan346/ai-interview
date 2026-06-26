@@ -7,7 +7,7 @@ import dotenv from "dotenv";
 import userrouter from "./src/routes/user-route/users.route";
 import jwtAuthRouter from "./src/routes/jwtAuth-route/jwtAuth.route";
 import { startSocket } from "./src/webSockets/socket";
-import sessionRouter from "./src/routes/session-routes/session.route";
+import interviewRouter from "./src/routes/session-routes/interview.route";
 
 dotenv.config();
 
@@ -33,11 +33,11 @@ app.get("/", (req, res) => {
 
 app.use("/api/v1/user", userrouter);
 app.use("/api/v1/auth", jwtAuthRouter);
-app.use("/api/v1/session", sessionRouter);
+app.use("/api/v1/interview", interviewRouter);
 
 // create http server
 const server = http.createServer(app);
-
+ 
 // attach socket.io
 const io = startSocket(server);
 

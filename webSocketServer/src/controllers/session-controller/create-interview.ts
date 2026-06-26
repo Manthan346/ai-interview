@@ -6,7 +6,7 @@ import { authRequest } from "../../interfaces/auth.interface";
 import { ApiResponse } from "../../helpers/ApiResponse";
 
 const createSession = asyncHandler(async(req: authRequest, res: Response) => {
-    const {candidateName,experience, role } = req.body
+    const { candidateName, experience, role, numberOfQuestions } = req.body
     const userId = req.user?.id
 
 
@@ -15,6 +15,7 @@ const createSession = asyncHandler(async(req: authRequest, res: Response) => {
             candidateName,
             experience,
             role,
+            numberOfQuestions,
             userId
         }
     })
@@ -30,4 +31,4 @@ const createSession = asyncHandler(async(req: authRequest, res: Response) => {
 
 export {
     createSession
-}
+} 

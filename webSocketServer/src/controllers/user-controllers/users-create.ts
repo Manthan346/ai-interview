@@ -10,13 +10,13 @@ import crypto from "crypto"
 import strict from "assert/strict";
 
 const createUser = asyncHandler(async (req: Request, res: Response) => {
-    const {email} = req.body
-
+    const {email} = req.body  
+ 
     if (!email) {
         throw new ApiError(400, "please provide an email")
-
-        
-    }
+ 
+         
+    }  
     //create if user not exists update if user exists (login and signup using single endpoint)
    
     const user = await prisma.user.upsert({

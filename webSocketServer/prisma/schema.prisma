@@ -9,6 +9,9 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+ 
+ 
+   
    
 }
 
@@ -30,6 +33,7 @@ model Interview {
   role String
   experience String
   candidateName String
+  numberOfQuestions Int
   questions Question[]
   overallScore Int?
   summary String?
@@ -38,6 +42,7 @@ model Interview {
   improvements String[]
   finalInterviewVerdict String?
   candidatePerspective String?
+  
   
   selectionChances selectionChances?
   
@@ -51,16 +56,12 @@ model Interview {
 
 model Question {
   id String @id @default(uuid())
-  questions String?
+  question String?
   interviewId String
   interview Interview @relation(fields: [interviewId], references: [id])
 
-  userAnswerSummary String?
-  expectedAnswer String?
-  feedback String?
-  whatWasMissing String?
-  whatInterviewersWouldThink String?
-  betterAnswerOutline String?
+  
+  expectedAnswer String[]
   score Int?
 
   createdAt DateTime @default(now())
@@ -71,11 +72,8 @@ model Question {
 
 
 
-enum assignedRole {
-  system
-  assistant
-  user
-}
+
+
 
 enum selectionChances {
   LOW

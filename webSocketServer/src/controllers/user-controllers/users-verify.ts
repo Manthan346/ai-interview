@@ -7,7 +7,7 @@ import { ResendEmail } from "../../lib/resend";
 import { ApiResponse } from "../../helpers/ApiResponse";
 import { prisma } from "../../lib/prisma";
 import { TokenPayload } from "../../interfaces/jwt.interface";
-
+import { generateAccessToken, generateRefreshToken } from "../../utils/jwtAuth";
 
 
 
@@ -102,7 +102,44 @@ const verifyEmail = asyncHandler(async (req: Request, res: Response) => {
             otpExpires: null
         }
     })
+
+
     
+     const accessToken=  generateAccessToken({
+        id: verifiedEmail.id,
+        email: verifiedEmail.email,
+        isVerified: verifiedEmail.isVerified
+    })
+
+  const refreshToken =  generateRefreshToken({
+        id: verifiedEmail.id,
+        
+    })
+
+
+ const addRefreshToken =    await prisma.user.update({
+      where: {id: user.id},
+      data: {refreshToken: refreshToken}
+    })
+
+    if (!addRefreshToken) {
+        throw new ApiError(400, "cannot add refresh token to database please login again")
+        
+    }
+   
+
+    res.cookie("accessToken", accessToken, {
+        httpOnly: true,
+        secure: true,
+        sameSite: "lax",
+        maxAge: 30 * 60 * 1000
+    })
+       res.cookie("refreshToken", refreshToken, {
+        httpOnly: true,
+        secure: true,
+        sameSite: "lax",
+        maxAge: 7 * 24 * 60 * 60 * 1000
+    })
 
     return res.status(200).json(
         new ApiResponse(200, {

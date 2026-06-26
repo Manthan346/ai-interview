@@ -15,12 +15,16 @@ export const verifyUserUsingAccessToken = asyncHandler(async(req: authRequest, r
     }
     //verify user 
     const decoded = jwt.verify(accessToken, process.env.JWT_SECRET!) as TokenPayload
-     req.user = {
+     req.user = { 
         id: decoded.id,
-        email: decoded.email,
+        email: decoded.email,  
         isVerified: decoded.isVerified
+     }
+     if (!decoded.isVerified) {
+        throw new ApiError(401, "please verify your email")
+        
      }
 
      next()
-
-})
+ 
+}) 

@@ -11,13 +11,13 @@ export const  validateBody = <T extends z.ZodTypeAny>(schema: T) => {
       if (error instanceof z.ZodError) {
         return res.status(400).json({
           error: 'Validation failed',
-          details: error.issues.map((err) => ({
+          details: error.issues.map((err) => ({ 
             fields: err.path[0],
             message: err.message,
           })),
         });
       }
-      next(error);
+      next(error); 
     }
   };
 }
