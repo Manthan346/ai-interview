@@ -9,44 +9,77 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+ 
+ 
+   
+   
 }
 
 model User {
-  id String @id 
-  email  String
-  name String
+  id String @id @default(uuid())
+  email  String @unique
   refreshToken String?
+  userOtp String
+  otpExpires DateTime?
+  interviews Interview[]
+  isVerified Boolean @default(false)
   createdAt DateTime @default(now())
-  updatedAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
 }
 
 model Interview {
-  id String @unique  @default(uuid())
-  interviewType String 
-  messages Message[]
-
+  id String @id  @default(uuid())
+  role String
+  experience String
+  candidateName String
+  numberOfQuestions Int
+  questions Question[]
+  overallScore Int?
+  summary String?
+  isCompleted Boolean @default(false)
+  strengths String[]
+  weaknesses String[]
+  improvements String[]
+  finalInterviewVerdict String?
+  candidatePerspective String?
   
+  
+  selectionChances selectionChances?
+  
+    
+   userId String?
+  user User? @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+ 
 }
 
-
-model Message {
-  id String @unique @id @default(uuid())
-  role assignedRole
-
-  content String
+model Question {
+  id String @id @default(uuid())
+  question String?
   interviewId String
-  interview Interview @relation(fields: [interviewId], references: [id]) 
+  interview Interview @relation(fields: [interviewId], references: [id])
 
   
+  expectedAnswer String[]
+  score Int?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
 }
 
-enum assignedRole {
-  system
-  assistant
-  user
+
+
+
+
+
+
+enum selectionChances {
+  LOW
+  MEDIUM
+  HIGH
 }
-
-
 
 

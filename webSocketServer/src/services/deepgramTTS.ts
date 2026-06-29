@@ -71,42 +71,58 @@
 
 import { DeepgramClient } from "@deepgram/sdk";
 
-export async function DeepgramTTS(text: string): Promise<Buffer> {
-  const client = new DeepgramClient();
-
-  const response = await client.speak.v1.audio.generate({
-    text,
-    model: "aura-2-athena-en",
-    encoding: "linear16",
-    container: "wav",
-    sample_rate: 16000,
-  });
-
-  // Stream chunks as they arrive instead of waiting for full response
-  const stream = response.stream();
-  const reader = stream!.getReader();
-  const chunks: Uint8Array[] = [];
-
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    chunks.push(value);
-  }
-
-  return Buffer.concat(chunks);
-}
-
-
-
-// import { ElevenLabsClient, play } from '@elevenlabs/elevenlabs-js';
-// import 'dotenv/config';
-// const elevenlabs = new ElevenLabsClient();
-// const audio = await elevenlabs.textToSpeech.convert(
-//   'JBFqnCBsd6RMkjVDRZzb', // "George" - browse voices at elevenlabs.io/app/voice-library
-//   {
-//     text: 'The first move is what sets everything in motion.',
-//     modelId: 'eleven_v3',
-//     outputFormat: 'mp3_44100_128',
-//   }
-// );
-// await play(audio);
+export const createTTSConnection = async (
+  onAudioData: (buffer: Buffer) => void
+  
+) => {
+ try {
+   const client = new DeepgramClient();
+ 
+   // @ts-ignore
+   const connection = await client.speak.v1.createConnection({
+     model: "aura-2-thalia-en",
+     encoding: "linear16",
+     sample_rate: 24000,
+   });
+ 
+   connection.on("message", async (data: any) => {
+     if (data instanceof ArrayBuffer) { 
+       onAudioData(Buffer.from(data));
+     } else if (Buffer.isBuffer(data)) {
+       onAudioData(data);
+     } else if (data && typeof data.arrayBuffer === "function") {
+       try {
+         const arrayBuffer = await data.arrayBuffer();
+         onAudioData(Buffer.from(arrayBuffer));
+       } catch (err) {
+         console.error("Failed to convert TTS Blob:", err);
+       }
+     }
+   });
+ 
+   connection.on("error", (err: any) => {
+     console.error("TTS WebSocket Error:", err.message);
+   });
+ 
+   connection.connect();
+   // @ts-ignore
+   await connection.waitForOpen();
+ 
+   return {
+     speak: (text: string) => {
+       connection.sendText({ type: "Speak", text });
+       connection.sendFlush({ type: "Flush" });
+     },
+     close: () => {
+       connection.close(); 
+     },
+     cancel: () => {
+       connection.close();
+     },
+   }; 
+ } catch (error: any) {
+  console.log(error.message)
+   
+ }
+}; 
+ 

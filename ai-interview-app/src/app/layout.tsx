@@ -1,21 +1,28 @@
 
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { Google_Sans, Source_Code_Pro } from "next/font/google";
 import "./globals.css";
 import { SidebarProvider } from "@/components/ui/sidebar";
-import AppSideBar from "@/components/sidebar/app-sidebar";
+
 import { SessionProvider } from "next-auth/react";
 import Providers from "./provider";
+import { ThemeProvider } from "@/components/themes/theme-provider";
+import { ModeToggle } from "@/components/themes/toogle-theme";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const google_sans = Google_Sans({
   subsets: ["latin"],
-});
+  variable: "--font-googleSans"
+  
+})
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const source_code_pro = Source_Code_Pro({
   subsets: ["latin"],
-});
+  variable: "--font-souceCodePro"
+})
+
+
+
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -28,20 +35,26 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-     
-      
+    <html lang="en" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`  ${google_sans.className}  antialiased`}
+        suppressHydrationWarning
       >
-        <Providers >
-
-        {children}
+        <Providers>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
+            
+            
+            {children}
+            
+          </ThemeProvider>
+          
         </Providers>
-   
       </body>
-    
-      
     </html>
   );
 }

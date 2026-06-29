@@ -1,34 +1,5 @@
-"use client"
+import { redirect } from "next/navigation";
 
-import { SidebarProvider } from "@/components/ui/sidebar"
-import AppSideBar from "@/components/sidebar/app-sidebar"
-
-
-    
-
-
-
-
-
-
-
-export default  function Page() {
-  
-      
-     
-      
-  
-
-   
-  
-  return (
-    
-    <SidebarProvider>
-  
-      <AppSideBar />
-      
-      
-      </SidebarProvider>
-    
-  )
+export default function DashboardPage() {
+  redirect("/dashboard/schedule-interview");
 }
