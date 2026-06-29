@@ -69,7 +69,7 @@ export function PrepForm() {
     formState: { errors },
     reset,
   } = useForm<PrepType>({
-    // @ts-expect-error Zod typing issue with hookform resolvers
+    
     resolver: zodResolver(prepSchema),
     defaultValues: {
       candidateName: "",
