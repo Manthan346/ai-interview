@@ -29,7 +29,8 @@ const  getAllInterview = asyncHandler(async(req: authRequest, res: Response) => 
             role: true,
             experience: true,
             candidateName: true,
-            createdAt: true
+            createdAt: true,
+            isCompleted: true
             
         },
         orderBy: {createdAt: "desc"}

@@ -150,6 +150,10 @@ export async function createInterviewSession({
           data: {
             overallScore: parsed.overallScore,
             summary: parsed.summary,
+            isCompleted: true,
+            
+            
+            
             strengths: parsed.strengths,
             weaknesses: parsed.weaknesses,
             improvements: parsed.improvements,

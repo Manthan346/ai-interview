@@ -37,6 +37,7 @@ model Interview {
   questions Question[]
   overallScore Int?
   summary String?
+  isCompleted Boolean @default(false)
   strengths String[]
   weaknesses String[]
   improvements String[]

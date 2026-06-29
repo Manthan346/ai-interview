@@ -73,6 +73,7 @@ import { DeepgramClient } from "@deepgram/sdk";
 
 export const createTTSConnection = async (
   onAudioData: (buffer: Buffer) => void
+  
 ) => {
  try {
    const client = new DeepgramClient();
@@ -114,7 +115,10 @@ export const createTTSConnection = async (
      },
      close: () => {
        connection.close(); 
-     }
+     },
+     cancel: () => {
+       connection.close();
+     },
    }; 
  } catch (error: any) {
   console.log(error.message)

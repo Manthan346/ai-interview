@@ -31,6 +31,7 @@ type EndInterviewAction =  {
   strengths: string[];
   weaknesses: string[];
   improvements: string[];
+  isCompleted: boolean
   finalInterviewVerdict: string
   candidatePerspective: string
   selectionChances: "LOW" | "MEDIUM" | "HIGH";
