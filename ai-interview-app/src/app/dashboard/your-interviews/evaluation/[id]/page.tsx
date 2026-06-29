@@ -49,7 +49,7 @@ function page() {
       )
     }
 
-    if (data.overallScore === 0) {
+    if (!data.isCompleted) {
     return (
       <div>you didnt  completed the interview</div>
     )   
@@ -76,7 +76,7 @@ function page() {
 
           <button
             type="button"
-            onClick={() => router.push(`/dashboard/your-session/evaluation/${id}/questions`)}
+            onClick={() => router.push(`/dashboard/your-interviews/evaluation/${id}/questions`)}
             className="inline-flex items-center justify-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-4 py-2 text-sm font-medium text-primary transition hover:bg-primary/20"
           >
             View expected answers

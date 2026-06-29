@@ -5,6 +5,7 @@ export interface InterviewData {
   overallScore: number;
   summary: string;
   strengths: string[];
+  isCompleted: boolean
   weaknesses: string[];
   improvements: string[];
   selectionChances: 'HIGH' | 'MEDIUM' | 'LOW';
@@ -83,4 +84,26 @@ export const scoreTone = (s: number) => {
     bg: "bg-destructive/10",
     bar: "bg-destructive",
   };
+};
+
+
+
+export type CandidateStatus = "COMPLETED" | "CANCELLED";
+
+export interface Candidate {
+  id: string;
+  candidateName: string;
+  role: string;
+  experience: string;
+  status: CandidateStatus;
+  isCompleted: boolean
+  
+  createdAt: string;
+  createdBy?: string;
+}
+
+export const statusStyles: Record<CandidateStatus, string> = {
+  COMPLETED:
+    "bg-emerald-500/15 text-emerald-400 ring-1 ring-emerald-500/30",
+  CANCELLED: "bg-destructive/15 text-destructive ring-1 ring-destructive/40",
 };

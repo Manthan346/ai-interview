@@ -38,7 +38,7 @@ export function AppSidebar() {
       <SidebarHeader className="border-b">
         <div className="flex items-center gap-3 px-4 py-3">
           <div className="flex-1">
-            <h1 className="text-lg font-bold text-foreground">Sessions</h1>
+            <h1 className="text-lg font-bold ">Sessions</h1>
           </div>
         </div>
       </SidebarHeader>
@@ -50,7 +50,7 @@ export function AppSidebar() {
               <SidebarMenuButton asChild >
                 <a
                   href={item.href}
-                  className="flex items-center gap-3 bg-foreground no-underline"
+                  className="flex items-center gap-3  no-underline"
                 >
                   <item.icon className="size-5" />
                   <span className="font-medium">{item.title}</span>

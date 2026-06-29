@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
 
 export default function DashboardPage() {
-  redirect("/dashboard/schedule-session");
+  redirect("/dashboard/schedule-interview");
 }

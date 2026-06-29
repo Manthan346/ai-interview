@@ -32,7 +32,7 @@ export const QuestionCard = memo(function QuestionCard({ question, index }: Prop
               <MessageCircleQuestion className="h-4 w-4 text-primary" />
             </div>
             <div className="min-w-0">
-              <div className="mb-1 text-[10px] font-bold tracking-[0.24em] text-primary">
+              <div className="mb-1 text-sm tracking-wide font-bold  text-primary">
                 QUESTION {String(index + 1).padStart(2, "0")}
               </div>
               <h3 className="text-base font-semibold leading-snug text-foreground">

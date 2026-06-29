@@ -37,10 +37,10 @@ function page() {
   }
 
   return (
-    <div className="mx-auto flex w-full max-w-5xl flex-col gap-6 px-4 py-6 sm:px-6 lg:px-8">
+    <div className="mx-auto flex w-full max-w-5xl flex-col gap-6 px-4 py-6 mt-14 sm:px-6 lg:px-8">
       <button
         type="button"
-        onClick={() => router.push(`/dashboard/your-session/evaluation/${id}`)}
+        onClick={() => router.push(`/dashboard/your-interviews/evaluation/${id}`)}
         className="flex w-fit items-center gap-2 rounded-full border border-border/70 bg-background/80 px-4 py-2 text-sm font-medium text-foreground transition hover:bg-accent"
       >
         <ArrowLeft className="h-4 w-4" />

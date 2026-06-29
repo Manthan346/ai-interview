@@ -8,18 +8,46 @@ import { Controls } from "./controls";
 import { useVoiceCall } from "../../app/hooks/useVoiceCall";
 import { FadeUp } from "./motion-section";
 import ErrorMessage from "../error-message/error-message";
+import { useRouter } from "next/navigation";
 
 
 
 export function CallScreen() {
-  const { isMicOn, isCallActive, aiSpeaking, isAiThinking, handleAudio, handleEndCall, conversation, errorMsg } =
+  const { isMicOn, isCallActive, aiSpeaking, isAiThinking, handleAudio, handleEndCall, conversation, errorMsg, isSocketConnected, isWebSocketDisconnected } =
     useVoiceCall();
+    const router = useRouter()
+
 
   const auraSubtitle = aiSpeaking
     ? "Responding..."
     : isAiThinking
       ? "Thinking..."
       : aura.status;
+
+      if (!isSocketConnected) {
+        return <div>
+          socket Connecting
+        </div>
+        
+      }
+
+      if (!isCallActive) {
+        setTimeout(()=> {
+          router.push('/dashboard')
+
+        }, 5000)
+
+        
+      }
+
+      if (!isCallActive) {
+        setTimeout(()=> {
+          router.push('/dashboard')
+
+        }, 5000)
+
+        
+      }
 
   const auraImage = typeof aura.image === "string" ? aura.image : aura.image.src;
 
@@ -66,7 +94,7 @@ export function CallScreen() {
               <div className="rounded-2xl border border-border bg-card p-10 text-center shadow-2xl">
                 <h3 className="text-2xl font-semibold text-card-foreground">Call Ended</h3>
                 <p className="mt-2 text-sm text-muted-foreground">
-                  Thank you for joining the session.
+                  Thank you for joining the session. you will be redirected to dashboard
                 </p>
               </div>
             </div>

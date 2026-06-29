@@ -4,13 +4,13 @@ const menu_item = [
     {
         title: "Schedule Session",
         icon: CalendarClock,
-        href: "/dashboard/schedule-session"
+        href: "/dashboard/schedule-interview"
     },
     
         {
         title: "your sessions",
         icon: CalendarClock,
-        href: "/dashboard/schedule-session"
+        href: "/dashboard/your-interviews"
     }
     
 ]

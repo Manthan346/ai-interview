@@ -77,3 +77,7 @@ export const  getIntrviewQuestionEvaluation = (id: ParamValue) => {
   return backend.get(`api/v1/interview/questions/${id}`)
 
 }
+
+export const getAllInterviews = () => {
+  return backend.get('api/v1/interview/user-interviews')
+}
