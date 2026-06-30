@@ -138,7 +138,11 @@ export const useVoiceCall = () => {
   const handleDataAvailable = (event: BlobEvent) => {
     if (event.data.size > 0 && socketRef.current?.connected) {
       socketRef.current.emit("audio-chunk", event.data);
+  const handleDataAvailable = (event: BlobEvent) => {
+    if (event.data.size > 0 && socketRef.current?.connected) {
+      socketRef.current.emit("audio-chunk", event.data);
     }
+  };
   };
 
   const handleAudio = async () => {
@@ -147,6 +151,10 @@ export const useVoiceCall = () => {
       setIsMicOn(isStartingRecording);
 
       if (!mediaStreamRef.current) {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          audio: true,
+        });
+
         const stream = await navigator.mediaDevices.getUserMedia({
           audio: true,
         });
@@ -201,6 +209,7 @@ export const useVoiceCall = () => {
 
   const handleEndCall = () => {
     setIsCallActive(false);
+
 
     mediaRecorderRef.current?.stop();
     mediaStreamRef.current
