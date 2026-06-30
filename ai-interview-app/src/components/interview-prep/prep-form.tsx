@@ -70,7 +70,8 @@ export function PrepForm() {
     reset,
   } = useForm<PrepType>({
     
-    resolver: zodResolver(prepSchema),
+    // cast to any to avoid zod version incompatibility between packages
+    resolver: zodResolver(prepSchema as any),
     defaultValues: {
       candidateName: "",
       experience: "",

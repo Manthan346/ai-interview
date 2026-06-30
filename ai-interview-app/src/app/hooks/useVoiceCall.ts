@@ -248,7 +248,7 @@ export const useVoiceCall = () => {
   };
 
   useEffect(() => {
-    const socket = io("http://localhost:3001", {
+    const socket = io(process.env.NEXT_PUBLIC_BASE_URL, {
       transports: ["websocket"],
     });
 

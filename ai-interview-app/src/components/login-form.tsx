@@ -25,7 +25,7 @@ export function LoginForm() {
     formState: { errors, isSubmitting },
     reset,
   } = useForm<SignupType>({
-    resolver: zodResolver(signupSchema),
+    resolver: zodResolver(signupSchema as any),
     defaultValues: {
       email: "",
     },
