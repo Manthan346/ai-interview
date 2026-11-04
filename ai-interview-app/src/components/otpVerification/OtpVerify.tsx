@@ -45,15 +45,7 @@ function VerifyOtp() {
     }
   }
 
-  useEffect(() => {
-    //send otp to email
-   try {
-     sendOtpToEmail()
-   } catch (error:any) {
-      console.log(error.message) 
-   }
-   
-  }, [])
+  
 
   const handleOtpVerify = async () => {
    try {

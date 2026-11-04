@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useForm, Controller } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useRouter } from "next/navigation"
@@ -19,46 +19,46 @@ import {
 } from "@/components/ui/select"
 
 import { PrepType, prepSchema } from "@/lib/zod/prep-validation"
-import { createInterviewSession } from "@/api"
+import { createInterviewSession, getInterviewOptions } from "@/api"
 
-const ROLES = [
-  "Software Engineer (IT)",
-  "Data Scientist (IT)",
-  "web developer",
-  "frontend developer",
-  "backend developer",
-  "react.js developer",
-  "full stack developer",
-  "Product Manager (IT)",
-  "Accountant (Accounts)",
-  "Financial Analyst (Accounts)",
-  "Sales Representative (Sales)",
-  "Marketing Executive (Marketing)",
-  "HR Manager (Human Resources)",
-  "Frontend Developer",
-  
-  "Operations Manager (Operations)",
-  "Customer Support (Service)",
-]
 
-const EXPERIENCES = [
-  "Fresher",
-  "Less than 1 year",
-  "1-2 years",
-  "2-3 years",
-  "3-4 years",
-  "4-5 years",
-  "5-6 years",
-  "6-7 years",
-  "7-8 years",
-  "8-9 years",
-  "9-10 years",
-  "10+ years",
-]
 
-const QUESTION_COUNTS = [5, 10, 15, 20, 25, 30]
+
 
 export function PrepForm() {
+  type rolesType = {
+    id: string,
+    role: string
+  }
+  type experienceType = {
+    id: string,
+    experience: string,
+
+  }
+  type numberOfQuestionsType = {
+    id?: string,
+    numberOfQuestion?: string,
+    NumberOfQuestion?: string,
+  } 
+
+  const [experience, setExperience] = useState<  experienceType[]>([])
+const [roles, setRoles] = useState<  rolesType[] >([])
+const [numberOfQuestions, setNumberOfQuestions] = useState<numberOfQuestionsType[]>([])
+
+const fetchInterviewOptions = async () => {
+   const res = await getInterviewOptions()
+   const responseData = res?.data?.data ?? {}
+
+   setExperience(responseData.experiences ?? [])
+   setRoles(responseData.roles ?? [])
+   setNumberOfQuestions(responseData.questions ?? [])
+}
+
+useEffect(() => {
+  fetchInterviewOptions()
+}, [])
+
+
   const router = useRouter()
   const [isSubmittingForm, setIsSubmittingForm] = useState(false)
 
@@ -74,9 +74,9 @@ export function PrepForm() {
     resolver: zodResolver(prepSchema as any),
     defaultValues: {
       candidateName: "",
-      experience: "",
-      role: "",
-      numberOfQuestions: 5,
+      experienceId: "",
+      roleId: "",
+      numberOfQuestionId: "",
     },
   })
 
@@ -97,12 +97,9 @@ export function PrepForm() {
         
         {/* Header Section */}
         <div className="mb-10 flex flex-col items-center space-y-4 text-center">
-          <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-4 py-1.5 text-sm font-semibold text-primary">
-            <Sparkles className="h-4 w-4" />
-            NEXT GENERATION AI
-          </div>
+        
           <h1 className="text-4xl font-extrabold tracking-tight text-foreground md:text-5xl">
-            Step Into the Future
+            Enter your details
           </h1>
           <p className="text-base text-muted-foreground">
             Your AI-powered career journey starts here.
@@ -139,7 +136,7 @@ export function PrepForm() {
               </label>
               <Controller
                 control={control}
-                name="experience"
+                name="experienceId"
                 render={({ field }) => (
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <SelectTrigger className="h-14 p-7 w-full rounded-2xl border border-input bg-background/10 text-base text-foreground shadow-sm transition-all focus:border-transparent focus:bg-background/20  dark:bg-background/20">
@@ -148,9 +145,9 @@ export function PrepForm() {
                     <SelectContent  className="w-full rounded-2xl  border-input bg-card">
                       <SelectGroup>
                       <SelectLabel className="ml-5">Experience</SelectLabel>
-                      {EXPERIENCES.map((exp) => (
-                        <SelectItem key={exp} value={exp} className="cursor-pointer rounded-2xl sm:ml-5 text-foreground focus:bg-accent focus:text-accent-foreground">
-                          {exp}
+                      {experience?.map((exp) => (
+                        <SelectItem key={exp.id} value={exp.id} className="cursor-pointer rounded-2xl sm:ml-5 text-foreground focus:bg-accent focus:text-accent-foreground">
+                          {exp.experience}
                         </SelectItem>
                       ))}
                       </SelectGroup>
@@ -158,8 +155,8 @@ export function PrepForm() {
                   </Select>
                 )}
               />
-              {errors.experience && (
-                <p className="text-sm text-red-500">{errors.experience.message}</p>
+              {errors.experienceId && (
+                <p className="text-sm text-red-500">{errors.experienceId.message}</p>
               )}
             </div>
           </div>
@@ -171,7 +168,7 @@ export function PrepForm() {
             </label>
             <Controller
               control={control}
-              name="role"
+              name="roleId"
               render={({ field }) => (
                 <Select onValueChange={field.onChange} defaultValue={field.value}>
                   <SelectTrigger className="h-14 w-full rounded-2xl border p-7 border-input bg-background/10 text-base text-foreground shadow-sm transition-all focus:border-transparent focus:bg-background/20  dark:bg-background/20">
@@ -181,9 +178,10 @@ export function PrepForm() {
                   <SelectContent  className="w-full rounded-2xl border-input  bg-card ">
                      <SelectGroup>
                       <SelectLabel className="ml-5">Roles</SelectLabel>
-                    {ROLES.map((role) => (
-                      <SelectItem key={role} value={role} className="cursor-pointer rounded-2xl ml-5 text-foreground focus:bg-accent focus:text-accent-foreground">
-                        {role}
+                    {roles?.map((role) => (
+                      <SelectItem key={role.id} value={role.id} className="cursor-pointer rounded-2xl ml-5 text-foreground focus:bg-accent focus:text-accent-foreground">
+                        {(role.role)}
+                        
                       </SelectItem>
                     ))}
                     
@@ -192,8 +190,8 @@ export function PrepForm() {
                 </Select>
               )}
             />
-            {errors.role && (
-              <p className="text-sm text-red-500">{errors.role.message}</p>
+            {errors.roleId && (
+              <p className="text-sm text-red-500">{errors.roleId.message}</p>
             )}
           </div>
 
@@ -204,11 +202,11 @@ export function PrepForm() {
             </label>
             <Controller
               control={control}
-              name="numberOfQuestions"
+              name="numberOfQuestionId"
               render={({ field }) => (
                 <Select
-                  onValueChange={(value) => field.onChange(Number(value))}
-                  defaultValue={String(field.value)}
+                  onValueChange={(value) => field.onChange((value))}
+                  defaultValue={(field.value)}
                 >
                   <SelectTrigger className="h-14 w-full rounded-2xl border p-7 border-input bg-background/10 text-base text-foreground shadow-sm transition-all focus:border-transparent focus:bg-background/20 dark:bg-background/20">
                     <SelectValue placeholder="Select number of questions" />
@@ -216,22 +214,26 @@ export function PrepForm() {
                   <SelectContent className="w-full rounded-2xl border-input bg-card">
                     <SelectGroup>
                       <SelectLabel className="ml-5">Question Count</SelectLabel>
-                      {QUESTION_COUNTS.map((count) => (
-                        <SelectItem
-                          key={count}
-                          value={String(count)}
-                          className="cursor-pointer rounded-2xl ml-5 text-foreground focus:bg-accent focus:text-accent-foreground"
-                        >
-                          {count}
-                        </SelectItem>
-                      ))}
+                      {numberOfQuestions?.map((count, index) => {
+                      
+
+                        return (
+                          <SelectItem
+                            key={count.id}
+                            value={count.id!}
+                            className="cursor-pointer rounded-2xl ml-5 text-foreground focus:bg-accent focus:text-accent-foreground"
+                          >
+                            {count.NumberOfQuestion ?? "—"}
+                          </SelectItem>
+                        )
+                      })}
                     </SelectGroup>
                   </SelectContent>
                 </Select>
               )}
             />
-            {errors.numberOfQuestions && (
-              <p className="text-sm text-red-500">{errors.numberOfQuestions.message}</p>
+            {errors.numberOfQuestionId && (
+              <p className="text-sm text-red-500">{errors.numberOfQuestionId.message}</p>
             )}
           </div>
 

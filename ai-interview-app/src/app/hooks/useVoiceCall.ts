@@ -13,13 +13,19 @@ export const useVoiceCall = () => {
   const [isSocketConnected, setIsSocketConnected] = useState(false);
   const [isWebSocketDisconnected, SetisWebSocketDisconnected] = useState(false);
 
+  // New: Track TTS and STT readiness
+  const [isTtsReady, setIsTtsReady] = useState(false);
+  const [isSttReady, setIsSttReady] = useState(false);
+  const [isSetupComplete, setIsSetupComplete] = useState(false);
+  const [setupStatus, setSetupStatus] = useState<string>("connecting");
+
   const socketRef = useRef<Socket | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
   const nextStartTimeRef = useRef<number>(0);
   const audioSourcesRef = useRef<AudioBufferSourceNode[]>([]);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const mediaStreamRef = useRef<MediaStream | null>(null);
-  
+
   // Audio detection refs
   const audioAnalyserRef = useRef<AnalyserNode | null>(null);
   const audioDataArrayRef = useRef<Uint8Array | null>(null);
@@ -28,7 +34,10 @@ export const useVoiceCall = () => {
   const detectionLoopRef = useRef<number | null>(null);
   const isAudioPlayingRef = useRef<boolean>(false);
   const checkIntervalRef = useRef<NodeJS.Timeout | null>(null);
-  
+
+  // Flag to track intentional call end to prevent state reset
+  const isIntentionalEndRef = useRef<boolean>(false);
+
   const router = useRouter();
 
   // Enhanced stop function that immediately stops all AI audio
@@ -46,7 +55,7 @@ export const useVoiceCall = () => {
     nextStartTimeRef.current = 0;
     isAudioPlayingRef.current = false;
     setAiSpeaking(false);
-    
+
     // Clear the check interval
     if (checkIntervalRef.current) {
       clearInterval(checkIntervalRef.current);
@@ -63,34 +72,33 @@ export const useVoiceCall = () => {
       sum += normalized * normalized;
     }
     const rms = Math.sqrt(sum / audioData.length);
-    
+
     // Lower threshold for better sensitivity
     const SPEECH_THRESHOLD = 0.100;
     // Shorter delay for faster response
     const SILENCE_DELAY = 300;
-    
+
     const currentTime = Date.now();
-    
+
     // Check if user is speaking
     if (rms > SPEECH_THRESHOLD) {
       // Update last speech time
       lastSpeechTimeRef.current = currentTime;
-      
+
       // If user wasn't speaking before, they just started
       if (!isUserSpeakingRef.current) {
         console.log("🔴 User started speaking - RMS:", rms);
         isUserSpeakingRef.current = true;
-        
+
         // IMMEDIATELY stop AI audio if it's playing
         if (isAudioPlayingRef.current || aiSpeaking) {
-        
+
           stopAllAiAudio();
         }
       }
     } else {
       // Check if user has stopped speaking (silence for SILENCE_DELAY ms)
       if (isUserSpeakingRef.current && currentTime - lastSpeechTimeRef.current > SILENCE_DELAY) {
-  
         isUserSpeakingRef.current = false;
       }
     }
@@ -101,17 +109,17 @@ export const useVoiceCall = () => {
     // Use existing audio context or create new one
     const audioContext = audioContextRef.current || new (window.AudioContext || (window as any).webkitAudioContext)();
     audioContextRef.current = audioContext;
-    
+
     const source = audioContext.createMediaStreamSource(stream);
     const analyser = audioContext.createAnalyser();
     analyser.fftSize = 256; // Smaller for faster response
     analyser.smoothingTimeConstant = 0.6; // Less smoothing for faster detection
-    
+
     source.connect(analyser);
-    
+
     audioAnalyserRef.current = analyser;
     audioDataArrayRef.current = new Uint8Array(analyser.fftSize);
-    
+
     // Start detection loop
     if (detectionLoopRef.current) {
       cancelAnimationFrame(detectionLoopRef.current);
@@ -124,20 +132,32 @@ export const useVoiceCall = () => {
     if (!audioAnalyserRef.current || !audioDataArrayRef.current) {
       return;
     }
-    
+
     const analyser = audioAnalyserRef.current;
     const dataArray = audioDataArrayRef.current;
-    
+
     analyser.getByteTimeDomainData(dataArray as Uint8Array<ArrayBuffer>);
     detectUserSpeaking(dataArray);
-    
+
     // Continue detection loop
     detectionLoopRef.current = requestAnimationFrame(detectSpeechLoop);
   };
 
   const handleDataAvailable = (event: BlobEvent) => {
+    console.log("MediaRecorder data available:", {
+      size: event.data.size,
+      type: event.data.type,
+      timestamp: Date.now()
+    });
     if (event.data.size > 0 && socketRef.current?.connected) {
-      socketRef.current.emit("audio-chunk", event.data);
+      // Convert Blob to ArrayBuffer for proper socket.io binary transmission
+      event.data.arrayBuffer().then(arrayBuffer => {
+        if (socketRef.current?.connected) {
+          socketRef.current.emit("audio-chunk", arrayBuffer);
+        }
+      }).catch(err => {
+        console.error("Failed to convert Blob to ArrayBuffer:", err);
+      });
     }
   };
 
@@ -171,10 +191,10 @@ export const useVoiceCall = () => {
         stopAllAiAudio();
         setIsAiThinking(false);
         recorder?.start(100);
-        
+
         // Reset user speaking state
         isUserSpeakingRef.current = false;
-        
+
         // Start detection loop if not already running
         if (audioAnalyserRef.current && !detectionLoopRef.current) {
           detectSpeechLoop();
@@ -182,7 +202,7 @@ export const useVoiceCall = () => {
       } else if (recorder?.state === "recording") {
         recorder.stop();
         setIsMicOn(false);
-        
+
         // Stop audio detection
         isUserSpeakingRef.current = false;
         if (detectionLoopRef.current) {
@@ -200,6 +220,8 @@ export const useVoiceCall = () => {
   };
 
   const handleEndCall = () => {
+    // Set flag to indicate we're intentionally ending the call
+    // This prevents the socket disconnect handler from resetting setup states
     setIsCallActive(false);
 
     mediaRecorderRef.current?.stop();
@@ -211,7 +233,7 @@ export const useVoiceCall = () => {
       audioContextRef.current.close();
       audioContextRef.current = null;
     }
-    
+
     // Cleanup audio detection
     if (audioAnalyserRef.current) {
       audioAnalyserRef.current = null;
@@ -224,9 +246,16 @@ export const useVoiceCall = () => {
       clearInterval(checkIntervalRef.current);
       checkIntervalRef.current = null;
     }
-    
+
     stopAllAiAudio();
     setIsAiThinking(false);
+
+    // Navigate to evaluation page if we have interview details
+    // Note: interviewDetail is not directly available in this hook
+    // We'll rely on the socket event for navigation but prevent state reset
+    isIntentionalEndRef.current = true;
+
+    // Disconnect socket
     socketRef.current?.disconnect();
   };
 
@@ -237,7 +266,7 @@ export const useVoiceCall = () => {
       clearInterval(checkIntervalRef.current);
       checkIntervalRef.current = null;
     }
-    
+
     // Start new interval to check if user starts speaking during playback
     checkIntervalRef.current = setInterval(() => {
       if (isUserSpeakingRef.current && isAudioPlayingRef.current) {
@@ -247,9 +276,27 @@ export const useVoiceCall = () => {
     }, 100);
   };
 
+  // Check if all services are ready
+  const checkSetupComplete = () => {
+    const complete = isSocketConnected && isTtsReady && isSttReady;
+    console.log('[useVoiceCall] checkSetupComplete called:', {
+      isSocketConnected,
+      isTtsReady,
+      isSttReady,
+      complete,
+      isSetupComplete
+    });
+    if (complete && !isSetupComplete) {
+      console.log("✅ All services ready - Interview can start!");
+      setIsSetupComplete(true);
+      setSetupStatus("ready");
+    }
+  };
+
   useEffect(() => {
     const socket = io(process.env.NEXT_PUBLIC_BASE_URL, {
       transports: ["websocket"],
+      withCredentials: true,
     });
 
     socketRef.current = socket;
@@ -257,6 +304,28 @@ export const useVoiceCall = () => {
     socket.on("connect", () => {
       console.log("Socket connected:", socket.id);
       setIsSocketConnected(true);
+      setSetupStatus("socket_connected");
+    });
+
+    // TTS Ready - Text-to-Speech service is ready
+    socket.on("tts-ready", (data) => {
+      console.log("TTS service ready:", data);
+      setIsTtsReady(true);
+      setSetupStatus("tts_ready");
+    });
+
+    // STT Ready - Speech-to-Text service is ready
+    socket.on("stt-ready", (data) => {
+      console.log("STT service ready:", data);
+      setIsSttReady(true);
+      setSetupStatus("stt_ready");
+    });
+
+    // Connection error handling
+    socket.on("connection-error", (data) => {
+      console.error("Connection error:", data);
+      setErrorMsg(data.message || "Failed to initialize interview services");
+      setSetupStatus("error");
     });
 
     socket.on("transcript", (data: userTranscript) => {
@@ -387,7 +456,19 @@ export const useVoiceCall = () => {
 
     socket.on("disconnect", () => {
       console.log("Socket disconnected");
-      SetisWebSocketDisconnected(true);
+      // Only reset states if this wasn't an intentional end call
+      if (!isIntentionalEndRef.current) {
+        SetisWebSocketDisconnected(true);
+        // Reset setup states on disconnect
+        setIsSocketConnected(false);
+        setIsTtsReady(false);
+        setIsSttReady(false);
+        setIsSetupComplete(false);
+        setSetupStatus("disconnected");
+      } else {
+        // Reset the flag for next time
+        isIntentionalEndRef.current = false;
+      }
     });
 
     return () => {
@@ -402,8 +483,25 @@ export const useVoiceCall = () => {
         checkIntervalRef.current = null;
       }
       stopAllAiAudio();
+
+      // Reset setup states on cleanup
+      setIsTtsReady(false);
+      setIsSttReady(false);
+      setIsSetupComplete(false);
+      setSetupStatus("disconnected");
     };
-  }, []);
+  }, []); // Socket connection should only happen once
+
+  // Check setup completion whenever any service readiness changes
+  useEffect(() => {
+    console.log('[useVoiceCall] Service states changed:', {
+      isSocketConnected,
+      isTtsReady,
+      isSttReady,
+      isSetupComplete
+    });
+    checkSetupComplete();
+  }, [isSocketConnected, isTtsReady, isSttReady]);
 
   return {
     isMicOn,
@@ -416,5 +514,10 @@ export const useVoiceCall = () => {
     errorMsg,
     isWebSocketDisconnected,
     isSocketConnected,
+    // New: Export setup states
+    isTtsReady,
+    isSttReady,
+    isSetupComplete,
+    setupStatus,
   };
 };

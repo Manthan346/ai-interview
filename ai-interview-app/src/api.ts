@@ -1,4 +1,3 @@
-
 import axios from "axios";
 import { getServerSession } from "next-auth";
 import { getToken } from "next-auth/jwt";
@@ -12,12 +11,7 @@ const backend = axios.create({
   baseURL: process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3001",
   withCredentials: true,
 
-
 })
-
-
-
-
 
 
 backend.interceptors.response.use(
@@ -45,7 +39,7 @@ backend.interceptors.response.use(
   }
 )
 
-//create user 
+//create user
 export const signUps = (email: SignupType) => {
   return backend.post("/api/v1/user/register",
     email
@@ -78,6 +72,10 @@ export const  getIntrviewQuestionEvaluation = (id: ParamValue) => {
 
 }
 
-export const getAllInterviews = () => {
-  return backend.get('api/v1/interview/user-interviews')
+export const getAllInterviews = (page: number = 1, limit: number = 10) => {
+  return backend.get(`api/v1/user/user-interviews?page=${page}&limit=${limit}`)
+}
+
+export const getInterviewOptions = () => {
+  return backend.get('api/v1/interview/options')
 }

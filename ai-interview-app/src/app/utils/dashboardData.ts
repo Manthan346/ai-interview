@@ -1,4 +1,4 @@
-import { CalendarClock } from "lucide-react"
+import { CalendarClock, ListChecks } from "lucide-react"
 
 const menu_item = [
     {
@@ -6,15 +6,11 @@ const menu_item = [
         icon: CalendarClock,
         href: "/dashboard/schedule-interview"
     },
-    
-        {
-        title: "your sessions",
-        icon: CalendarClock,
+    {
+        title: "Your Sessions",
+        icon: ListChecks,
         href: "/dashboard/your-interviews"
     }
-    
 ]
-
-
 
 export default menu_item

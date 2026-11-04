@@ -1,7 +1,7 @@
 export interface InterviewData {
   candidateName: string;
-  role: string;
-  experience: string;
+  roleValue: string;
+  experienceValue: string;
   overallScore: number;
   summary: string;
   strengths: string[];
@@ -93,8 +93,9 @@ export type CandidateStatus = "COMPLETED" | "CANCELLED";
 export interface Candidate {
   id: string;
   candidateName: string;
-  role: string;
-  experience: string;
+  roleValue: string;
+  experienceValue: string;
+  numberOfQuestionValue: string
   status: CandidateStatus;
   isCompleted: boolean
   

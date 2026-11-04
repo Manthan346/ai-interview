@@ -1,24 +1,30 @@
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
-import DashboardBreadcrumb from "@/components/breadcrumbs/dashboard-breadcrumb"
+// app/(dashboard)/layout.tsx
+import { Menu } from "lucide-react"
+import {
+  AnimatedSidebarProvider,
+  AnimatedSidebarInset,
+  AnimatedSidebarTrigger,
+} from "@/components/ui/animated-sidebar"
 import { AppSidebar } from "@/components/sidebar/app-sidebar"
+import DashboardBreadcrumb from "@/components/breadcrumbs/dashboard-breadcrumb"
 
-export default function DashboardLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
+export default function Layout({ children }: { children: React.ReactNode }) {
   return (
-    <SidebarProvider>
+    <AnimatedSidebarProvider>
       <AppSidebar />
-      
-
-      <main className="relative flex-1 w-full h-screen overflow-y-auto">
-        <div className="absolute top-4 left-4 z-50 flex items-center gap-2">
-          <SidebarTrigger />
-          <DashboardBreadcrumb />
-        </div>
-        {children}
-      </main>
-    </SidebarProvider>
+    <AnimatedSidebarInset>
+  <header className="sticky top-0 z-30 flex h-14 items-center border-b bg-background px-4 md:hidden">
+    <AnimatedSidebarTrigger className="hover:bg-muted">
+      <Menu className="size-5" />
+    </AnimatedSidebarTrigger>
+  </header>
+  <div className="min-w-0 flex-1">
+    <div className="sticky top-0 z-30 hidden border-b bg-background px-6 py-3 md:block lg:px-8">
+      <DashboardBreadcrumb />
+    </div>
+    {children}
+  </div>
+</AnimatedSidebarInset>
+    </AnimatedSidebarProvider>
   )
 }

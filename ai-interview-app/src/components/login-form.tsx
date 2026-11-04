@@ -7,13 +7,14 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useRouter } from "next/navigation"
 
 import { Button } from "@/components/ui/button"
+
 import { Input } from "@/components/ui/input"
 
 import {
   SignupType,
   signupSchema,
 } from "@/lib/zod/user-validation"
-import { signUps } from "@/api"
+import { sendOtpToEmail, signUps } from "@/api"
 
 export function LoginForm() {
   const [mode, setMode] = useState<"signup" | "signin">("signup")
@@ -36,6 +37,15 @@ export function LoginForm() {
   const onSubmit = async (data: SignupType) => {
     //calling bakend for user creation
     const res = await signUps(data)
+    
+        //send otp to email
+       try {
+         sendOtpToEmail()
+       } catch (error:any) {
+          console.log(error.message) 
+       }
+       
+  
     if (res.status === 200) {
       router.push("/verify")
 

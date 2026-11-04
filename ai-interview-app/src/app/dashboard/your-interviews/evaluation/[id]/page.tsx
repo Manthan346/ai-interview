@@ -57,7 +57,7 @@ function page() {
 
   return (
     <Suspense fallback={<div>loaing </div>}>
-    <div className="mx-auto flex w-full max-w-7xl flex-col gap-2">
+    <div className="mx-auto flex w-full mt-12 max-w-7xl flex-col gap-2">
       <InterviewReport data={data} />
 
       <div className="mx-auto w-full max-w-7xl rounded-2xl border border-border/60 bg-gradient-to-br from-primary/10 via-background to-background p-5 shadow-sm">

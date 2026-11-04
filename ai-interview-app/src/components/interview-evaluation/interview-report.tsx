@@ -10,11 +10,11 @@ import { InterviewData } from "@/app/types/interview";
 export default function InterviewReport({ data }: { data: InterviewData }) {
   return (
     <div className=" min-h-screen bg-background text-foreground">
-      <div className="mx-auto max-w-6xl px-6 py-10 space-y-6">
+      <div className="mx-auto max-w-13xl py-1 space-y-6">
         <ReportHeader
           candidate={data.candidateName}
-          role={data.role}
-          experience={data.experience}
+          role={data.roleValue}
+          experience={data.experienceValue}
           date={data.date}
           overallScore={data.overallScore}
           selectionChances={data.selectionChances}

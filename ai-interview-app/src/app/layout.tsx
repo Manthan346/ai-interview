@@ -3,7 +3,6 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Google_Sans, Source_Code_Pro } from "next/font/google";
 import "./globals.css";
-import { SidebarProvider } from "@/components/ui/sidebar";
 
 import { SessionProvider } from "next-auth/react";
 import Providers from "./provider";
