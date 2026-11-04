@@ -26,11 +26,16 @@ const  getAllInterview = asyncHandler(async(req: authRequest, res: Response) => 
         take: limit,
         select: {
             id: true,
-            role: true,
-            experience: true,
+            roleValue: true,
+            numberOfQuestionValue: true,
+            
+            
             candidateName: true,
             createdAt: true,
-            isCompleted: true
+            isCompleted: true,
+            experienceValue: true,
+
+            
             
         },
         orderBy: {createdAt: "desc"}

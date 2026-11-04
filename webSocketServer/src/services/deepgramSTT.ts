@@ -12,16 +12,18 @@ export const createDeepgramConnection = async (
     const dgSocket = await deepgram.listen.v1.createConnection({
       model: "nova-3",
       language: "en",
-      interim_results: "true",
+     
+      interim_results: true,
+
       endpointing: 300,
-      utterance_end_ms: "2000",  
+      utterance_end_ms: "2000",
       keyterm: [
         "MERN Stack",
         "React",
-        "Node.js", 
+        "Node.js",
         "Express",
-        "MongoDB", 
-        "TypeScript", 
+        "MongoDB",
+        "TypeScript",
         "JavaScript",
         "REST API",
         "GraphQL",
@@ -72,6 +74,7 @@ export const createDeepgramConnection = async (
         const transcript = data.channel?.alternatives?.[0]?.transcript;
         if (transcript && transcript.trim().length > 0) {
           finalResult += ` ${transcript}`;
+          console.log(transcript)
   
           if (data.speech_final) {
             speechFinal = true;

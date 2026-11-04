@@ -31,15 +31,25 @@ model User {
 
 model Interview {
   id String @id  @default(uuid())
-  role String
-  experience String
+  roleId String?
+  role Roles? @relation(fields: [roleId], references: [id])
+  experienceId String?
+  experience YearOfExperience? @relation(fields: [experienceId], references: [id])
+  numberOfQuestionId String?
+  numberOfQuestion NumberOfQuestion? @relation(fields: [numberOfQuestionId], references: [id])
+  experienceValue String
+  numberOfQuestionValue String
+  roleValue String
+
+
   candidateName String
-  numberOfQuestions Int
+  
   questions Question[]
   overallScore Int?
   summary String?
   isCompleted Boolean @default(false)
   strengths String[]
+
   weaknesses String[]
   improvements String[]
   finalInterviewVerdict String?
@@ -72,9 +82,23 @@ model Question {
 }
 
 
+model YearOfExperience  {
+  id String @id @default(uuid())
+  experience String
+  interview Interview[]
+}
 
+model Roles {
+  id String @id @default(uuid())
+  role String
+  interview Interview[]
+}
 
-
+model NumberOfQuestion {
+  id String @id @default(uuid())
+  NumberOfQuestion String
+  interview Interview[]
+}
 
 
 enum selectionChances {

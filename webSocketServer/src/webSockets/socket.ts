@@ -15,7 +15,7 @@ import cookie from "cookie"
 export const startSocket = (server: HttpServer) => {
   const io = new Server(server, {
     cors: {
-      origin: "*", // change to frontend URL in production
+      origin: process.env.FRONTEND_URL || "http://localhost:3000",
       methods: ["GET", "POST"],
       credentials: true,
     },
@@ -142,10 +142,10 @@ export const startSocket = (server: HttpServer) => {
               // Initialize interview session if not already created
               if (!interviewSession) {
                 interviewSession = await createInterviewSession({
-                  role: interviewDetail.role,
-                  experience: interviewDetail.experience,
+                  role: interviewDetail.roleValue,
+                  experience: interviewDetail.experienceValue,
                   name: interviewDetail?.candidateName || "",
-                  numberOfQuestions,
+                  numberOfQuestions: interviewDetail.numberOfQuestionValue,
                   userId: user.id,
                   interviewId: interviewDetail.id,
                 });
@@ -239,21 +239,34 @@ export const startSocket = (server: HttpServer) => {
       // ============================================
       // AUDIO CHUNK HANDLING WITH ERROR HANDLING
       // ============================================
-      socket.on("audio-chunk", (chunk) => {
+      socket.on("audio-chunk", async (chunk) => {
         try {
+          console.log("Received audio-chunk, type:", typeof chunk, "is ArrayBuffer:", chunk instanceof ArrayBuffer);
+
           if (!dgSocket) {
-            throw new Error("Deepgram socket not initialized");
+            console.warn("Deepgram socket not initialized, dropping audio chunk");
+            return;
           }
-          
+
           if (dgSocket.readyState === 1) {
-            dgSocket.sendMedia(chunk);
+            // Convert to ArrayBuffer if needed
+            let arrayBuffer: ArrayBuffer;
+            if (chunk instanceof ArrayBuffer) {
+              arrayBuffer = chunk;
+            } else if (chunk && typeof chunk === 'object' && 'buffer' in chunk) {
+              // Handle Buffer or ArrayBufferView
+              const buf = chunk as ArrayBufferView;
+              arrayBuffer = buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength) as ArrayBuffer;
+            } else {
+              console.warn("Unexpected chunk type:", typeof chunk, chunk);
+              return;
+            }
+
+            console.log("Sending to Deepgram, byteLength:", arrayBuffer.byteLength);
+            dgSocket.sendMedia(arrayBuffer);
           } else {
-            console.error("Deepgram socket not ready. ReadyState:", dgSocket.readyState);
-            socket.emit("error-message", {
-              interviewId: interviewDetail?.id,
-              type: "STT_NOT_READY",
-              message: "Speech-to-text service is not ready. Please wait.",
-            });
+            console.warn("Deepgram socket not ready. ReadyState:", dgSocket.readyState, ", dropping audio chunk");
+            return;
           }
         } catch (error: any) {
           console.error("Audio send error:", error.message);

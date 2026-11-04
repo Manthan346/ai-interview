@@ -1,6 +1,4 @@
-import { Request, Response } from "express";
-
-
+import { Response } from "express";
 import { asyncHandler } from "../../helpers/asyncHandler";
 import { ApiError } from "../../helpers/ApiError";
 import { NextFunction } from "express";
@@ -19,25 +17,44 @@ import { TokenPayload } from "../../interfaces/jwt.interface";
 const generateNewAccessAndRefreshToken = asyncHandler(async (req: authRequest, res: Response, next: NextFunction) => {
     const refreshToken = req.cookies.refreshToken
     if (!refreshToken) {
-        throw new ApiError(400, "refresh token not found")
-        
+        throw new ApiError(401, "unauthorized")
     }
-    
- 
-    const decoded = jwt.verify(refreshToken, process.env.JWT_SECRET!) as TokenPayload
-    const user = await prisma.user.findFirst({
-        where : { 
-            id: decoded.id 
+
+    let decoded: TokenPayload
+    try {
+        decoded = jwt.verify(refreshToken, process.env.JWT_SECRET!) as TokenPayload
+    } catch (error) {
+        if (error instanceof jwt.JsonWebTokenError) {
+            throw new ApiError(401, "unauthorized")
         }
-    }) 
-    if (!user) { 
-        throw new ApiError(404, "user not found")
-          
+        throw error
     }
-    
+
+    const user = await prisma.user.findFirst({
+        where: {
+            id: decoded.id
+        }
+    })
+    if (!user || !user.refreshToken || user.refreshToken !== refreshToken) {
+        throw new ApiError(401, "unauthorized")
+    }
 
     const newAccessToken = generateAccessToken({id:user.id, email: user.email, isVerified: user.isVerified})
-    const newRefreshToken = generateRefreshToken({id: user!.id})
+    const newRefreshToken = generateRefreshToken({id: user.id})
+
+    const tokenRotation = await prisma.user.updateMany({
+        where: {
+            id: user.id,
+            refreshToken
+        },
+        data: {
+            refreshToken: newRefreshToken
+        }
+    })
+    if (tokenRotation.count !== 1) {
+        throw new ApiError(401, "unauthorized")
+    }
+
     res.cookie("refreshToken", newRefreshToken, {
       httpOnly: true,
       secure: true,
@@ -52,19 +69,9 @@ const generateNewAccessAndRefreshToken = asyncHandler(async (req: authRequest, r
       maxAge:  15 * 60 * 1000, // 15 minutes
     })
 
-   await prisma.user.update({
-        where: {id: user?.id}, 
-        data: {refreshToken: newRefreshToken,
-            isVerified: user.isVerified
-        }
-    })
-
     return res.status(200).json(
-        new ApiResponse(200, "new access token and referesh token provided successfully")
-
-    ) 
-    
-
+        new ApiResponse(200, "new access token and refresh token provided successfully")
+    )
 }
 )
 

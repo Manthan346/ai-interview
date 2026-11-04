@@ -6,13 +6,15 @@ import { prepSchema } from "../../lib/zod/session-schema";
 import { getAllInterview } from "../../controllers/session-controller/get-all-interviews";
 import { getInterviewById } from "../../controllers/session-controller/get-interviewById";
 import { getInterviewQuestionsById } from "../../controllers/session-controller/get-interviewQuestionById";
+import { getInterviewOptions } from "../../controllers/session-controller/get-interview-options";
 
 const interviewRouter = Router()
 
 interviewRouter.post("/create-interview", verifyUserUsingAccessToken ,validateBody(prepSchema), createSession)
-interviewRouter.get('/user-interviews',verifyUserUsingAccessToken, getAllInterview)
+
 interviewRouter.get('/evaluation/:interviewId', getInterviewById)
 interviewRouter.get('/questions/:interviewId', getInterviewQuestionsById)
+interviewRouter.get('/options', getInterviewOptions)
 
 
 export default interviewRouter  
