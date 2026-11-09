@@ -66,8 +66,8 @@ function VerifyOtp() {
   const isComplete = otp.every((digit) => digit !== "")
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center px-4">
-      <div className="w-full max-w-md rounded-3xl border border-border bg-card shadow-2xl p-8">
+    <div className="flex min-h-[100svh] items-center justify-center bg-background px-4 py-6">
+      <div className="w-full max-w-md rounded-3xl border border-border bg-card p-5 shadow-2xl sm:p-8">
 
         {/* Header */}
         <div className="text-center space-y-3">
@@ -95,7 +95,7 @@ function VerifyOtp() {
         </div>
 
         {/* OTP Inputs */}
-        <div className="flex justify-center gap-3 mt-8">
+        <div className="mt-8 flex justify-center gap-2 sm:gap-3">
           {otp.map((digit, index) => (
             <input
               key={index}
@@ -111,7 +111,7 @@ function VerifyOtp() {
               }
               maxLength={1}
               type="text"
-              className="h-16 w-16 rounded-2xl border border-border bg-background text-center text-2xl font-semiboldtext-foreground outline-none transition-all duration-200 focus:border-primary focus:ring-4 focus:ring-primary/15 "
+              className="size-[clamp(2.5rem,12vw,3rem)] rounded-2xl border border-border bg-background text-center text-xl font-semibold text-foreground outline-none transition-all duration-200 focus:border-primary focus:ring-4 focus:ring-primary/15 sm:size-14 sm:text-2xl"
             />
           ))}
         </div>

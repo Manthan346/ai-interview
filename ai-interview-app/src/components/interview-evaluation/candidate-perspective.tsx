@@ -61,12 +61,13 @@ export function CandidatePerspective({ text }: { text: string }) {
     </div>
 
     <div>
-      <p className="text-xs uppercase tracking-wider text-muted-foreground">
-        Feedback Analysis
-      </p>
       <h3 className="font-semibold">
-        Candidate Perspective
+        Candidate Analysis
       </h3>
+      <p className="text-xs uppercase tracking-wider text-muted-foreground">
+        What intervier will think of you as per the current interview (note its AI it may do mistakes)
+      </p>
+      
     </div>
   </div>
 

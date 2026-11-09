@@ -10,7 +10,7 @@ import { InterviewData } from "@/app/types/interview";
 export default function InterviewReport({ data }: { data: InterviewData }) {
   return (
     <div className=" min-h-screen bg-background text-foreground">
-      <div className="mx-auto max-w-13xl py-1 space-y-6">
+      <div className="mx-auto max-w-13xl py-1 space-y-6 px-1">
         <ReportHeader
           candidate={data.candidateName}
           role={data.roleValue}
@@ -26,7 +26,7 @@ export default function InterviewReport({ data }: { data: InterviewData }) {
             items={data.strengths}
             variant="positive"
             badge={`${data.strengths?.length} POINTS`}
-            border="border-l-success"
+            border="border-l-accent"
           />
           <InsightList
             title="Critical Weaknesses"

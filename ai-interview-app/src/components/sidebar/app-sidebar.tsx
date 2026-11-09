@@ -1,8 +1,9 @@
 "use client"
 
 import * as React from "react"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import { LogOut, PanelLeft, Settings } from "lucide-react"
+import { getUserEmail, signOutUser } from "@/api"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {
   DropdownMenu,
@@ -37,12 +38,48 @@ function UserAvatar({ name }: { name: string }) {
 }
 
 export function AppSidebar() {
-  const [username] = React.useState("John Doe")
-  const [userEmail] = React.useState("john@example.com")
+  const [userEmail, setUserEmail] = React.useState("")
+  const [logoutError, setLogoutError] = React.useState("")
+  const [isSigningOut, setIsSigningOut] = React.useState(false)
+  const username = userEmail.split("@", 1)[0].replace(/[^a-z]/gi, "") || "User"
   const pathname = usePathname()
+  const router = useRouter()
+
+  React.useEffect(() => {
+    let active = true
+
+    getUserEmail()
+      .then((response) => {
+        if (active) {
+          setUserEmail(response.data.data.email)
+        }
+      })
+      .catch((error: unknown) => {
+        console.error("Failed to load user email:", error)
+      })
+
+    return () => {
+      active = false
+    }
+  }, [])
 
   const isActive = (href: string) =>
     pathname === href || pathname.startsWith(`${href}/`)
+
+  const handleSignOut = async () => {
+    setIsSigningOut(true)
+    setLogoutError("")
+
+    try {
+      await signOutUser()
+      router.replace("/signups")
+    } catch (error) {
+      console.error("Failed to sign out:", error)
+      setLogoutError("Could not sign out. Please try again.")
+    } finally {
+      setIsSigningOut(false)
+    }
+  }
 
   return (
     <AnimatedSidebar collapsible="icon" ariaLabel="App navigation">
@@ -112,15 +149,22 @@ export function AppSidebar() {
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
-              <Settings className="size-4" />
-              <span>Settings</span>
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem>
+
+            <DropdownMenuItem
+              disabled={isSigningOut}
+              onSelect={(event) => {
+                event.preventDefault()
+                void handleSignOut()
+              }}
+            >
               <LogOut className="size-4" />
-              <span>Log out</span>
+              <span>{isSigningOut ? "Logging out..." : "Log out"}</span>
             </DropdownMenuItem>
+            {logoutError && (
+              <p role="alert" className="px-2 py-1 text-xs text-destructive">
+                {logoutError}
+              </p>
+            )}
           </DropdownMenuContent>
         </DropdownMenu>
       </AnimatedSidebarFooter>

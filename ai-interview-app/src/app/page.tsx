@@ -1,14 +1,18 @@
-'use client';
+import { Hero } from "@/components/Hero"
+import { ProductPreview } from "@/components/ProductPreview"
+import { Features } from "@/components/Features"
+import { HowItWorks } from "@/components/HowItWorks"
 
-import { HowItWorks } from "@/components/HowItWorks";
 
-
-
-export default function HomePage() {
+export default function homePage() {
   return (
-    <div className="relative min-h-screen bg-background">
-      <HowItWorks />
-   
-    </div>
-  );
+    <>
+        <Hero />
+              <ProductPreview />
+              <Features />
+              <HowItWorks />
+    </>
+  )
+
+
 }

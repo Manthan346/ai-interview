@@ -1,3 +1,4 @@
+"use client"
 import { CTA_COPY, SECTION_COPY, STEPS } from "./howItWorks.data";
 import { styles } from "./howItWorks.styles";
 import { useActiveStep } from "./useActiveStep";

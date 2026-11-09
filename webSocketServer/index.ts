@@ -2,6 +2,7 @@ import express, { json } from "express";
 import http from "http";
 import cors from "cors"
 import cookieParser from "cookie-parser";
+import rateLimit from "express-rate-limit";
 import dotenv from "dotenv";
 
 import userrouter from "./src/routes/user-route/users.route";
@@ -12,6 +13,19 @@ import interviewRouter from "./src/routes/session-routes/interview.route";
 dotenv.config();
 
 const app = express();
+
+ const globalLimiter = rateLimit({
+  windowMs: 60 * 1000, // 1 minute
+  limit: 100,           // 100 requests per IP
+
+  standardHeaders: "draft-8",
+  legacyHeaders: false,
+
+  message: {
+    success: false,
+    message: "Too many requests. Please try again later."
+  }
+});
 const port = 3001;
 
 // middleware
@@ -23,6 +37,7 @@ app.use(
 );
 
 app.use(json());
+app.use(globalLimiter)
 app.use(cookieParser());
 
 // routes

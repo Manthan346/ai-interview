@@ -47,10 +47,8 @@ function RoadmapCard({ index, item }: { index: number; item: string }) {
     >
       <div className="absolute inset-0 bg-linear-to-br from-primary/0 to-primary/0 group-hover:from-primary/10 group-hover:to-accent/5 transition-colors" />
       <div className="relative">
-        <div className="text-[10px] font-bold tracking-widest text-primary mb-2">
-          {String(index + 1).padStart(2, "0")}
-        </div>
-        <div className="font-semibold mb-1.5">{title}</div>
+        
+        <div className="font-semibold mb-3.5">{title}</div>
         <p className="text-sm text-muted-foreground leading-relaxed">{desc}</p>
       </div>
     </motion.div>

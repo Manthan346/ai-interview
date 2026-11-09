@@ -32,6 +32,7 @@ backend.interceptors.response.use(
         return backend(originalRequest)
       } catch (err) {
         window.location.href = "/signups"
+        return Promise.reject(err)
       }
     }
 
@@ -74,6 +75,14 @@ export const  getIntrviewQuestionEvaluation = (id: ParamValue) => {
 
 export const getAllInterviews = (page: number = 1, limit: number = 10) => {
   return backend.get(`api/v1/user/user-interviews?page=${page}&limit=${limit}`)
+}
+
+export const getUserEmail = () => {
+  return backend.get("/api/v1/user/email")
+}
+
+export const signOutUser = () => {
+  return backend.post("/api/v1/user/signout")
 }
 
 export const getInterviewOptions = () => {

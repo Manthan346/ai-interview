@@ -5,6 +5,7 @@ import { useForm, Controller } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useRouter } from "next/navigation"
 import { User, ChevronDown, ArrowRight, Sparkles } from "lucide-react"
+import {TriangleAlertIcon} from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -101,9 +102,23 @@ useEffect(() => {
           <h1 className="text-4xl font-extrabold tracking-tight text-foreground md:text-5xl">
             Enter your details
           </h1>
-          <p className="text-base text-muted-foreground">
-            Your AI-powered career journey starts here.
-          </p>
+          
+          <div
+            role="note"
+            className="flex w-full items-start gap-3 rounded-xl border border-primary/30 bg-primary/10 px-4 py-3 text-left text-sm text-foreground"
+          >
+            <TriangleAlertIcon
+              aria-hidden="true"
+              className="mt-0.5 size-5 shrink-0 text-primary"
+            />
+            <p className="leading-relaxed">
+              <span className="font-semibold text-primary">
+                Important:
+              </span>{" "}
+              Say <span className="font-semibold">&quot;hello&quot; to AI</span>{" "}
+              to start the interview.
+            </p>
+          </div>
         </div>
 
         {/* Form Section */}

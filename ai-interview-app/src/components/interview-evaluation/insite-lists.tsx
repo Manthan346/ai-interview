@@ -8,7 +8,7 @@ interface Props {
   items: string[];
   variant: "positive" | "negative";
   badge?: string;
-  border: "border-l-success" | "border-l-destructive"
+  border: "border-l-accent" | "border-l-destructive"
 }
 
 export function InsightList({ title, items = [], variant, badge, border }: Props) {
@@ -24,7 +24,7 @@ export function InsightList({ title, items = [], variant, badge, border }: Props
       animate={{ opacity: 1, x: 0 }}
       transition={{ duration: 0.5, delay: 0.1 }}
       {...cardHover}
-      className={`rounded-2xl border-l-4 border-1 hover:cursor-pointer ${border} bg-card p-6`}
+      className={`rounded-2xl border-l-4 border-1  hover:cursor-pointer ${border} bg-card p-6`}
     >
       <div className="flex items-center  justify-between mb-4">
         <div className="flex items-center gap-2">
