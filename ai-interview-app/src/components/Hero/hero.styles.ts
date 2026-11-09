@@ -5,11 +5,11 @@ export const styles = {
     "before:pointer-events-none before:absolute before:left-1/2 before:top-0 before:-z-10 before:h-[36rem] before:w-[min(64rem,150vw)] before:-translate-x-1/2 " +
     "before:bg-[radial-gradient(closest-side,color-mix(in_oklab,var(--primary)_10%,transparent),transparent)]",
   inner: "mx-auto flex w-full max-w-4xl flex-col items-center",
-  title: "mt-7 max-w-full text-[clamp(1rem,calc(5.8vw+1.2px),3.9rem)] font-extrabold leading-[1.05] tracking-[-0.045em] sm:mt-8",
+  title: "mt-7 max-w-full text-3xl  font-extrabold leading-[1.05]  tracking-[-0.045em] sm:mt-8 sm:text-4xl md:text-5xl lg:text-6xl",
   titleLine: "block",
-  firstTitleLine: "whitespace-nowrap",
+  firstTitleLine: "whitespace-normal sm:whitespace-nowrap",
   accent: "text-primary",
-  subtitle: "mt-6 max-w-xl text-sm leading-relaxed text-foreground/50 sm:mt-7 sm:text-base md:text-lg",
+  subtitle: "mt-5 max-w-xl text-base leading-relaxed text-foreground/60 sm:mt-7 sm:text-lg md:text-lg",
   actions: "mt-8 flex w-full flex-row flex-nowrap items-center justify-center gap-2 sm:mt-10 sm:gap-3",
   primaryCta:
     "inline-flex min-w-0 flex-1 items-center justify-center gap-1.5 whitespace-nowrap rounded-xl bg-primary px-2.5 py-3 text-[0.6875rem] font-semibold text-primary-foreground " +
@@ -18,6 +18,5 @@ export const styles = {
   secondaryCta:
     "inline-flex min-w-0 flex-1 items-center justify-center whitespace-nowrap rounded-xl border border-white/10 bg-white/5 px-2.5 py-3 text-[0.6875rem] font-semibold text-foreground transition hover:bg-white/10 sm:flex-none sm:px-6 sm:py-3.5 sm:text-sm",
   proof: "mt-8 flex flex-wrap items-center justify-center gap-3 sm:mt-10",
-  audienceBadge:
-    "h-auto max-w-full gap-1.5 whitespace-normal border-primary/25 bg-primary/5 px-3 py-1.5 text-center text-[0.625rem] text-foreground/70 sm:text-xs [&>svg]:size-4 [&>svg]:shrink-0",
+  audienceText: "text-sm text-foreground/70 sm:text-base",
 };

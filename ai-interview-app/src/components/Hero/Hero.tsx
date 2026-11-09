@@ -1,9 +1,7 @@
 "use client";
 
 import { motion, useReducedMotion } from "framer-motion";
-import { Pill } from "../shared/Pill";
 import { ArrowRightIcon } from "../shared/icons";
-import { Badge } from "@/components/ui/badge";
 import {
   Avatar,
   AvatarFallback,
@@ -34,8 +32,6 @@ export function Hero() {
   return (
     <section className={styles.section}>
       <div className={styles.inner}>
-        <Pill icon="sparkle">{HERO.badge}</Pill>
-
         <motion.div
           className="flex w-full flex-col items-center"
           variants={sequence}
@@ -65,19 +61,21 @@ export function Hero() {
           </motion.div>
 
           <motion.div className={styles.proof} variants={reveal}>
-            <AvatarGroup aria-label="Students and professionals">
-              <Avatar size="sm">
-                <AvatarImage src="/candidate.jpg" alt="Student" />
-                <AvatarFallback>ST</AvatarFallback>
+            <AvatarGroup aria-label="Trusted by professionals and students">
+              <Avatar>
+                <AvatarImage src="/person1.jpg" alt="Professional" />
+                <AvatarFallback>P1</AvatarFallback>
               </Avatar>
-              <Avatar size="sm">
-                <AvatarImage src="/aura-ai.jpg" alt="Professional" />
-                <AvatarFallback>PR</AvatarFallback>
+              <Avatar>
+                <AvatarImage src="/person2.jpg" alt="Student" />
+                <AvatarFallback>P2</AvatarFallback>
+              </Avatar>
+              <Avatar>
+                <AvatarImage src="/person3.jpg" alt="Professional" />
+                <AvatarFallback>P3</AvatarFallback>
               </Avatar>
             </AvatarGroup>
-            <Badge variant="outline" className={styles.audienceBadge}>
-              {HERO.audienceLabel}
-            </Badge>
+            <p className={styles.audienceText}>Trusted by 10k+ professionals and students</p>
           </motion.div>
         </motion.div>
       </div>
