@@ -1,0 +1,71 @@
+.viewport {
+  display: flex;
+  overflow: hidden;
+}
+
+.horizontal {
+  flex-direction: row;
+}
+
+.vertical {
+  height: 100%;
+  flex-direction: column;
+}
+
+.track {
+  display: flex;
+  flex: 0 0 auto;
+  animation: marquee-horizontal var(--duration, 40s) linear infinite;
+}
+
+.horizontal .track {
+  flex-direction: row;
+}
+
+.vertical .track {
+  flex-direction: column;
+  min-height: max-content;
+  animation-name: marquee-vertical;
+}
+
+.group {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 1rem;
+}
+
+.horizontal .group {
+  flex-direction: row;
+  padding-right: 1rem;
+}
+
+.vertical .group {
+  flex-direction: column;
+  padding-bottom: 1rem;
+}
+
+.viewport[data-reverse="true"] .track {
+  animation-direction: reverse;
+}
+
+.pauseOnHover:hover .track {
+  animation-play-state: paused;
+}
+
+@keyframes marquee-horizontal {
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes marquee-vertical {
+  to {
+    transform: translateY(-50%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .track {
+    animation-play-state: paused;
+  }
+}

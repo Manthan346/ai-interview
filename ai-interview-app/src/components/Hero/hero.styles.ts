@@ -1,11 +1,11 @@
 export const styles = {
   section:
-    "relative isolate overflow-clip px-4 pb-16 pt-24 text-center font-[Inter,var(--font-sans)] text-foreground sm:px-6 sm:pb-20 sm:pt-28 md:pb-28 md:pt-40 " +
+    "relative isolate overflow-clip px-4 pb-16 pt-24 text-center  text-foreground sm:px-6 sm:pb-20 sm:pt-28 md:pb-28 md:pt-40 " +
     // soft green glow behind the headline
     "before:pointer-events-none before:absolute before:left-1/2 before:top-0 before:-z-10 before:h-[36rem] before:w-[min(64rem,150vw)] before:-translate-x-1/2 " +
     "before:bg-[radial-gradient(closest-side,color-mix(in_oklab,var(--primary)_10%,transparent),transparent)]",
   inner: "mx-auto flex w-full max-w-4xl flex-col items-center",
-  title: "mt-7 max-w-full text-3xl  font-extrabold leading-[1.05]  tracking-[-0.045em] sm:mt-8 sm:text-4xl md:text-5xl lg:text-6xl",
+  title: "mt-7 max-w-full text-3xl font-extrabold leading-[1.05] tracking-[-0.02em] sm:mt-8 sm:text-4xl md:text-5xl lg:text-6xl",
   titleLine: "block",
   firstTitleLine: "whitespace-normal sm:whitespace-nowrap",
   accent: "text-primary",

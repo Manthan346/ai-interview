@@ -22,7 +22,7 @@ export function StepRow({ step, number, isActive, focus, innerRef }: StepRowProp
       style={{ "--focus": focus } as CSSProperties}
     >
       <StepText number={number} title={step.title} description={step.description} />
-      <StepVisual image={step.image} imageAlt={step.imageAlt} badge={step.badge} />
+      <StepVisual stepId={step.id} isActive={isActive} badge={step.badge} />
     </li>
   );
 }

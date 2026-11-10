@@ -2,8 +2,6 @@ export interface Step {
   id: string;
   title: string;
   description: string;
-  image: string;
-  imageAlt: string;
   /** Optional floating pill on the card (e.g. "Interview configured"). */
   badge?: string;
 }
