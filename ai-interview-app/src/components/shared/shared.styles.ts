@@ -1,5 +1,9 @@
 /** Styling for the small primitives reused across sections (Logo, Pill). */
 export const sharedStyles = {
+  primaryCta:
+    "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl bg-primary font-semibold text-primary-foreground " +
+    "shadow-[0_0_30px_color-mix(in_oklab,var(--primary)_35%,transparent)] transition hover:brightness-110 " +
+    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
   logo: "inline-flex items-center gap-2.5",
   logoMark: "grid size-7 place-items-center rounded-lg bg-primary text-white shadow-[0_0_18px_color-mix(in_oklab,var(--primary)_40%,transparent)]",
   logoIcon: "size-4",

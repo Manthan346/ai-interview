@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { LogOut, PanelLeft, Settings } from "lucide-react"
 import { getUserEmail, signOutUser } from "@/api"
@@ -84,10 +85,34 @@ export function AppSidebar() {
   return (
     <AnimatedSidebar collapsible="icon" ariaLabel="App navigation">
       <AnimatedSidebarHeader className="border-b">
-        <div className="flex h-10 items-center justify-between group-data-[state=collapsed]/sidebar:justify-center">
-          <h1 className="truncate px-2 text-lg font-bold group-data-[state=collapsed]/sidebar:hidden">
-            Sessions
-          </h1>
+        <div className="flex min-h-10 items-center justify-between gap-2 group-data-[state=collapsed]/sidebar:justify-center">
+          <Link
+            href="/"
+            aria-label="Auxiliam AI home"
+            className="flex min-w-0 items-center gap-2 group-data-[state=collapsed]/sidebar:hidden"
+          >
+            <img
+              src="/logo/AuxiliamAI.svg"
+              alt=""
+              width={48}
+              height={48}
+              className="size-12 shrink-0 rounded-lg object-contain"
+            />
+            <span className="truncate text-base font-bold">Auxiliam AI</span>
+          </Link>
+          <Link
+            href="/"
+            className="hidden group-data-[state=collapsed]/sidebar:block"
+            aria-label="Auxiliam AI home"
+          >
+            <img
+              src="/logo/AuxiliamAI.svg"
+              alt=""
+              width={48}
+              height={48}
+              className="size-12 shrink-0 rounded-lg object-contain"
+            />
+          </Link>
           <AnimatedSidebarTrigger className="text-muted-foreground hover:bg-muted hover:text-foreground">
             <PanelLeft className="size-5" />
           </AnimatedSidebarTrigger>

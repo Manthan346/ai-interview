@@ -1,7 +1,7 @@
 "use client"
-
 import { useEffect, useState } from "react"
-import { Mail, Play } from "lucide-react"
+import Link from "next/link"
+import { Mail } from "lucide-react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useRouter } from "next/navigation"
@@ -15,7 +15,7 @@ import {
   signupSchema,
 } from "@/lib/zod/user-validation"
 import { sendOtpToEmail, signUps } from "@/api"
-
+  
 export function LoginForm() {
   const [mode, setMode] = useState<"signup" | "signin">("signup")
   const router = useRouter()
@@ -60,24 +60,24 @@ export function LoginForm() {
 
   return (
     <section className="min-h-screen bg-background p-4 md:p-6">
-      <div className="grid min-h-[95vh] overflow-hidden rounded-4xl border bg-card md:grid-cols-[1fr_420px]">
+      <div className="grid min-h-[95vh] overflow-hidden rounded-4xl border bg-card">
         {/* Left */}
         <div className="relative flex flex-col bg-background px-6 py-8 md:px-10">
-          <div className="text-2xl font-semibold tracking-tight">
-            AI-Interview
-          </div>
+          
 
           <div className="flex flex-1 items-center justify-center">
             <div className="w-full max-w-sm space-y-6">
               <div className="space-y-3 text-center">
-                <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-accent text-primary">
-                  <Play className="h-6 w-6 fill-current" />
-                </div>
+                <img
+                  src="/logo/AuxiliamAI.png"
+                  alt="Auxiliam AI logo"
+                  width={96}
+                  height={96}
+                  className="mx-auto size-24 object-contain"
+                />
 
                 <h1 className="text-3xl font-semibold tracking-tight">
-                  {isSignIn
-                    ? "Welcome Back"
-                    : "Welcome to AI-Interview"}
+                  {isSignIn ? "Welcome Back" : "Welcome to Auxiliam AI"}
                 </h1>
 
                 <p className="text-sm leading-6 text-muted-foreground">
@@ -154,27 +154,7 @@ export function LoginForm() {
         </div>
 
         {/* Right */}
-        <div className="relative hidden h-full md:block">
-          <video
-            autoPlay
-            muted
-            loop
-            playsInline
-            className="h-full w-full object-cover"
-            poster="/poster.jpg"
-          >
-            <source
-              src="/auth-showcase.mp4"
-              type="video/mp4"
-            />
-          </video>
-
-          <div className="absolute inset-0 bg-black/10" />
-
-          <div className="absolute bottom-6 right-6 rounded-2xl bg-black/40 px-4 py-2 text-sm text-white backdrop-blur-md">
-            Inspiring creativity
-          </div>
-        </div>
+       
       </div>
     </section>
   )

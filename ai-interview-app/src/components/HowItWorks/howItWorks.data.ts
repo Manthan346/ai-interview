@@ -23,6 +23,7 @@ export const STEPS: Step[] = [
   {
     id: "details",
     title: "Tell AI About Your Interview",
+    highlightedWord: "Interview",
     description:
       "Before starting, configure your interview in a few simple steps. Select roles, experience levels, and question density.",
    
@@ -30,12 +31,14 @@ export const STEPS: Step[] = [
   {
     id: "interview",
     title: "Have a Real Conversation",
+    highlightedWord: "Conversation",
     description:
       "Enter a realistic interview experience where AI asks questions based on your selected role and adapts in real-time.",
   },
   {
     id: "feedback",
     title: "Review Your Report",
+    highlightedWord: "Report",
     description:
       "Once complete, review a detailed AI-generated report and understand exactly where you excelled and where to improve.",
   },

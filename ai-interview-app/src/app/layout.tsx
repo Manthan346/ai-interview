@@ -12,23 +12,27 @@ const geist = Geist({
 });
 
 export const metadata: Metadata = {
-  title: "InterviewAI | AI interview practice",
+  title: "Auxiliam AI | AI interview practice",
   description:
     "Practice technical interviews through a live voice conversation and review structured AI feedback for your next step.",
+  icons: {
+    icon: "/logo/AuxiliamAI.svg",
+    shortcut: "/logo/AuxiliamAI.svg",
+  },
   openGraph: {
-    title: "InterviewAI | AI interview practice",
+    title: "Auxiliam AI | AI interview practice",
     description:
       "Practice technical interviews through a live voice conversation and review structured AI feedback for your next step.",
     images: [
       {
         url: "/step-2-interview.png",
-        alt: "InterviewAI live interview practice screen",
+        alt: "Auxiliam AI live interview practice screen",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "InterviewAI | AI interview practice",
+    title: "Auxiliam AI | AI interview practice",
     description:
       "Practice technical interviews through a live voice conversation and review structured AI feedback for your next step.",
     images: ["/step-2-interview.png"],

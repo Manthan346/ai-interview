@@ -7,7 +7,7 @@ const fade = "opacity-[calc(0.25_+_0.75_*_var(--focus,1))] transition-opacity du
 
 export const styles = {
   section:
-    "relative isolate overflow-clip bg-background px-4 pb-24 pt-20 font-sans text-foreground sm:px-6 sm:pb-32 sm:pt-24 md:pb-40 md:pt-28",
+    "relative isolate overflow-clip bg-background px-4 pb-24 pt-20 text-foreground sm:px-6 sm:pb-32 sm:pt-24 md:pb-40 md:pt-28",
   inner: "mx-auto max-w-[61rem]",
 
   // ---- header --------------------------------------------------------------

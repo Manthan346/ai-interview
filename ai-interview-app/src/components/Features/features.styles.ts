@@ -1,6 +1,6 @@
 /** Styling only — Tailwind class strings grouped by card. */
 export const styles = {
-  section: "relative px-4 pb-20 font-[Inter,var(--font-sans)] text-foreground sm:px-6 sm:pb-32",
+  section: "relative px-4 pb-20  text-foreground sm:px-6 sm:pb-32",
   header: "mb-8 flex justify-center sm:mb-10",
   grid: "mx-auto grid max-w-[62rem] grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3",
 

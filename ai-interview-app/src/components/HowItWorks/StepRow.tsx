@@ -21,7 +21,12 @@ export function StepRow({ step, number, isActive, focus, innerRef }: StepRowProp
       data-active={isActive}
       style={{ "--focus": focus } as CSSProperties}
     >
-      <StepText number={number} title={step.title} description={step.description} />
+      <StepText
+        number={number}
+        title={step.title}
+        highlightedWord={step.highlightedWord}
+        description={step.description}
+      />
       <StepVisual stepId={step.id} isActive={isActive} badge={step.badge} />
     </li>
   );
