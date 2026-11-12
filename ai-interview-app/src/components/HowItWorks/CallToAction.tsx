@@ -4,16 +4,13 @@ import type { CtaCopy } from "./howItWorks.types";
 
 interface CallToActionProps extends CtaCopy {
   onStart?: () => void;
-  onDemo?: () => void;
 }
 
 export function CallToAction({
   title,
   subtitle,
   primaryLabel,
-  secondaryLabel,
   onStart,
-  onDemo,
 }: CallToActionProps) {
   return (
     <div className={styles.cta}>
@@ -23,9 +20,6 @@ export function CallToAction({
         <button type="button" className={styles.ctaPrimary} onClick={onStart}>
           {primaryLabel}
           <ArrowRightIcon className={styles.ctaIcon} />
-        </button>
-        <button type="button" className={styles.ctaSecondary} onClick={onDemo}>
-          {secondaryLabel}
         </button>
       </div>
     </div>

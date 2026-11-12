@@ -71,7 +71,7 @@ export function Hero() {
   }, []);
 
   return (
-    <section className={styles.section}>
+    <section id="home" className={styles.section}>
       <div
         className="pointer-events-none absolute inset-0 z-0 opacity-60"
         aria-hidden="true"

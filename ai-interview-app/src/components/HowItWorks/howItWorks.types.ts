@@ -17,5 +17,4 @@ export interface CtaCopy {
   title: string;
   subtitle: string;
   primaryLabel: string;
-  secondaryLabel: string;
 }

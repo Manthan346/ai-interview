@@ -2,6 +2,8 @@
  * Styling only — Tailwind class strings grouped by element.
  * Colors use the application theme tokens defined in src/app/globals.css.
  */
+import { sharedStyles } from "../shared/shared.styles";
+
 // fades a step's content as it scrolls away; the card background stays opaque so the beam never shows through
 const fade = "opacity-[calc(0.25_+_0.75_*_var(--focus,1))] transition-opacity duration-200 ease-out";
 
@@ -104,12 +106,8 @@ export const styles = {
     "before:bg-[radial-gradient(closest-side,color-mix(in_oklab,var(--primary)_14%,transparent),transparent)]",
   ctaTitle: "max-w-[36rem] text-[clamp(2.25rem,9vw,3.5rem)] font-extrabold leading-[1.05] tracking-[-0.045em]",
   ctaSubtitle: "mt-5 max-w-[34rem] text-sm leading-[1.6] text-foreground/45 sm:mt-7 sm:text-base md:text-[1.0625rem]",
-  ctaActions: "mt-8 flex w-full flex-row flex-nowrap items-center justify-center gap-2 sm:mt-10 sm:gap-3",
+  ctaActions: "mt-8 flex w-full justify-center sm:mt-10",
   ctaPrimary:
-    "inline-flex min-w-0 flex-1 items-center justify-center gap-1.5 whitespace-nowrap rounded-full bg-primary px-2.5 py-3 text-[0.6875rem] font-semibold text-primary-foreground " +
-    "transition hover:brightness-110 sm:flex-none sm:gap-2.5 sm:px-8 sm:py-4 sm:text-[0.9375rem]",
-  ctaSecondary:
-    "inline-flex min-w-0 flex-1 items-center justify-center whitespace-nowrap rounded-full border border-border bg-muted px-2.5 py-3 text-[0.6875rem] font-semibold text-muted-foreground " +
-    "transition hover:bg-accent hover:text-accent-foreground sm:flex-none sm:px-8 sm:py-4 sm:text-[0.9375rem]",
+    `${sharedStyles.primaryCta} h-12 w-full px-4 text-base sm:w-auto sm:px-6 sm:text-sm`,
   ctaIcon: "size-3.5 shrink-0 sm:size-4",
 };

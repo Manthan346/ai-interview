@@ -9,7 +9,6 @@ export const CTA_COPY: CtaCopy = {
   subtitle:
     "Start an AI-powered interview and discover where you can improve before your next big opportunity.",
   primaryLabel: "Start Your Interview",
-  secondaryLabel: "View Demo",
 };
 
 export const SECTION_COPY: SectionCopy = {

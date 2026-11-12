@@ -9,11 +9,10 @@ import { CallToAction } from "./CallToAction";
 
 interface HowItWorksProps {
   onStart?: () => void;
-  onDemo?: () => void;
 }
 
 /** Container: wires content + scroll behaviour to presentational pieces. */
-export function HowItWorks({ onStart, onDemo }: HowItWorksProps) {
+export function HowItWorks({ onStart }: HowItWorksProps) {
   const { listRef, registerStep, activeIndex, focus, progress } = useActiveStep(STEPS.length);
 
   return (
@@ -37,7 +36,7 @@ export function HowItWorks({ onStart, onDemo }: HowItWorksProps) {
           </ol>
         </div>
 
-        <CallToAction {...CTA_COPY} onStart={onStart} onDemo={onDemo} />
+        <CallToAction {...CTA_COPY} onStart={onStart} />
       </div>
     </section>
   );

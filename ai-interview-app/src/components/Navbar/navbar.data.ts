@@ -2,13 +2,12 @@ import type { NavbarContent } from "./navbar.types";
 
 export const NAVBAR: NavbarContent = {
   links: [
-    { label: "Platform", href: "#features" },
-    { label: "Solutions", href: "#how-it-works" },
-    { label: "Success Stories", href: "#success-stories" },
-    { label: "Pricing", href: "#pricing" },
+    { label: "Home", href: "#home" },
+    { label: "Features", href: "#features" },
+    { label: "FAQ", href: "#faq" },
+    { label: "Contact", href: "#contact" },
+    { label: "Reviews", href: "#success-stories" },
   ],
-  loginLabel: "Log in",
-  loginHref: "#login",
-  ctaLabel: "Join Waitlist",
-  ctaHref: "#waitlist",
+  ctaLabel: "Get Started",
+  ctaHref: "/signups",
 };

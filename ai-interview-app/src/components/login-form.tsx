@@ -118,7 +118,7 @@ export function LoginForm() {
                 <Button
                   type="submit"
                   disabled={isSubmitting}
-                  className="h-12 w-full rounded-full text-base font-medium"
+                  className="h-12 w-full rounded-xl text-base font-medium"
                 >
                   {isSubmitting
                     ? "Please wait..."

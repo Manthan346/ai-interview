@@ -179,6 +179,7 @@ function MobileRotatingReview() {
 function VerticalMarqueeDemo() {
   return (
     <section
+      id="success-stories"
       className="relative isolate overflow-hidden bg-background px-4 py-14 text-foreground sm:px-6 sm:py-24"
       aria-labelledby="testimonials-heading"
     >
