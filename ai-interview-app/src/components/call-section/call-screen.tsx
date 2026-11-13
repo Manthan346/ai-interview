@@ -169,8 +169,6 @@ export function CallScreen() {
     );
   }
 
-  const auraImage = typeof aura.image === "string" ? aura.image : aura.image.src;
-
   return (
     <main className="min-h-screen bg-background text-foreground mt-20 relative">
 
@@ -182,8 +180,7 @@ export function CallScreen() {
           <Participant
             name={aura.name}
             subtitle={auraSubtitle}
-            image={auraImage}
-
+            kind="ai"
             speaking={aiSpeaking}
             thinking={isAiThinking}
             delay={0.1}
@@ -192,7 +189,7 @@ export function CallScreen() {
           <Participant
             name={candidate.name}
             subtitle={candidate.role}
-            image={auraImage}
+            kind="candidate"
             showMicIcon
             micOn={isMicOn && isCallActive}
             delay={0.2}

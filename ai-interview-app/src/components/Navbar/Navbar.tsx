@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Menu, X } from "lucide-react";
 import { useState } from "react";
+import { ModeToggle } from "@/components/themes/toogle-theme";
 import { NAVBAR } from "./navbar.data";
 import { styles } from "./navbar.styles";
 
@@ -41,7 +42,13 @@ export function Navbar() {
         </nav>
 
         <div className={styles.actions}>
-          <Link href={NAVBAR.ctaHref} className={styles.cta}>
+          <div className="hidden md:block">
+            <ModeToggle />
+          </div>
+          <Link
+            href={NAVBAR.ctaHref}
+            className={`hidden md:inline-flex ${styles.cta}`}
+          >
             {NAVBAR.ctaLabel}
           </Link>
           <button
@@ -72,6 +79,16 @@ export function Navbar() {
                 {link.label}
               </a>
             ))}
+            <div className={styles.mobileActions}>
+              <Link
+                href={NAVBAR.ctaHref}
+                className={`inline-flex ${styles.cta} flex-1`}
+                onClick={closeMobileMenu}
+              >
+                {NAVBAR.ctaLabel}
+              </Link>
+              <ModeToggle />
+            </div>
           </nav>
         )}
       </div>

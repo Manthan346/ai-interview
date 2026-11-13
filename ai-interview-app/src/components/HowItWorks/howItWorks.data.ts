@@ -12,7 +12,6 @@ export const CTA_COPY: CtaCopy = {
 };
 
 export const SECTION_COPY: SectionCopy = {
-  eyebrow: "How it works",
   title: "From Setup to Feedback",
   subtitle:
     "Configure your interview, have a realistic conversation with AI, and get detailed insights into every answer.",

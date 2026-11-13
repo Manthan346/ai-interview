@@ -8,7 +8,6 @@ export interface Step {
 }
 
 export interface SectionCopy {
-  eyebrow: string;
   title: string;
   subtitle: string;
 }

@@ -14,8 +14,6 @@ export const styles = {
 
   // ---- header --------------------------------------------------------------
   header: "mb-12 flex flex-col items-center gap-5 text-center sm:mb-16 sm:gap-7 md:mb-20",
-  eyebrow:
-    "rounded-full border border-border bg-muted px-3 py-1 text-[0.625rem] font-bold uppercase tracking-[0.2em] text-muted-foreground",
   title: "text-[clamp(2.25rem,9vw,4rem)] font-extrabold leading-[1.05] tracking-[-0.045em]",
   subtitle: "max-w-[34rem] text-sm leading-[1.6] text-foreground/45 sm:text-base md:text-[1.0625rem]",
 
@@ -108,6 +106,6 @@ export const styles = {
   ctaSubtitle: "mt-5 max-w-[34rem] text-sm leading-[1.6] text-foreground/45 sm:mt-7 sm:text-base md:text-[1.0625rem]",
   ctaActions: "mt-8 flex w-full justify-center sm:mt-10",
   ctaPrimary:
-    `${sharedStyles.primaryCta} h-12 w-full px-4 text-base sm:w-auto sm:px-6 sm:text-sm`,
+    `${sharedStyles.primaryCta} !text-white dark:!text-neutral-950 h-12 w-full px-4 text-base sm:w-auto sm:px-6 sm:text-sm`,
   ctaIcon: "size-3.5 shrink-0 sm:size-4",
 };

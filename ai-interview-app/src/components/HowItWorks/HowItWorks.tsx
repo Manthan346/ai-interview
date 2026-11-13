@@ -16,7 +16,11 @@ export function HowItWorks({ onStart }: HowItWorksProps) {
   const { listRef, registerStep, activeIndex, focus, progress } = useActiveStep(STEPS.length);
 
   return (
-    <section className={styles.section} aria-labelledby="hiw-heading">
+    <section
+      id="how-it-works"
+      className={styles.section}
+      aria-labelledby="hiw-heading"
+    >
       <div className={styles.inner}>
         <SectionHeader {...SECTION_COPY} />
 

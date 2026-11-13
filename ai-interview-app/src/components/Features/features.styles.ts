@@ -1,7 +1,8 @@
 /** Styling only — Tailwind class strings grouped by card. */
 export const styles = {
   section: "relative px-4 pb-20  text-foreground sm:px-6 sm:pb-32",
-  header: "mb-8 flex justify-center sm:mb-10",
+  header:
+    "mb-8 text-center text-[clamp(2rem,7vw,3rem)] font-extrabold leading-tight tracking-[-0.045em] sm:mb-10",
   grid: "mx-auto grid max-w-[62rem] grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3",
 
   // ---- shared card shell ---------------------------------------------------

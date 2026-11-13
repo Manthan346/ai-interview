@@ -27,7 +27,12 @@ export function proxy(request: NextRequest) {
   const access = request.cookies.get(ACCESS_COOKIE)?.value
   const refresh = request.cookies.get(REFRESH_COOKIE)?.value
 
- //if access or refresh token present allow 
+  // const pathname = request.nextUrl.pathname
+  // if ((pathname === "/" || pathname === "/signups") && hasUsableToken(access)) {
+  //   return NextResponse.redirect(new URL("/dashboard", request.url))
+  // }
+
+  // Allow dashboard access when either token is still usable.
   const loggedIn = hasUsableToken(access) || hasUsableToken(refresh)
 
   if (!loggedIn) {
@@ -41,5 +46,5 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/dashboard/:path*"],
+  matcher: ["/", "/dashboard/:path*", "/signups"],
 }

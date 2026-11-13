@@ -129,8 +129,21 @@ export function LoginForm() {
               </form>
 
               <p className="text-center text-xs leading-5 text-muted-foreground">
-                By continuing, you agree to our Terms and Privacy
-                Policy.
+                By continuing, you agree to our{" "}
+                <Link
+                  href="/terms"
+                  className="underline underline-offset-4 hover:text-foreground"
+                >
+                  Terms of Service
+                </Link>{" "}
+                and{" "}
+                <Link
+                  href="/privacy"
+                  className="underline underline-offset-4 hover:text-foreground"
+                >
+                  Privacy Policy
+                </Link>
+                .
               </p>
 
               <p className="text-center text-sm text-muted-foreground">

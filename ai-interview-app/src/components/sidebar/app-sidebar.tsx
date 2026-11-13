@@ -96,9 +96,9 @@ export function AppSidebar() {
               alt=""
               width={48}
               height={48}
-              className="size-12 shrink-0 rounded-lg object-contain"
+              className="size-7 shrink-0 rounded-lg object-contain"
             />
-            <span className="truncate text-base font-bold">Auxiliam AI</span>
+            <span className="truncate text-2xl font-bold">Auxiliam AI</span>
           </Link>
           <Link
             href="/"
@@ -110,7 +110,7 @@ export function AppSidebar() {
               alt=""
               width={48}
               height={48}
-              className="size-12 shrink-0 rounded-lg object-contain"
+              className="size-6 shrink-0 rounded-lg object-contain"
             />
           </Link>
           <AnimatedSidebarTrigger className="text-muted-foreground hover:bg-muted hover:text-foreground">

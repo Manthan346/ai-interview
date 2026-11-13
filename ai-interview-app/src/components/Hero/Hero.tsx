@@ -56,12 +56,16 @@ const sequence = {
 export function Hero() {
   const shouldReduceMotion = useReducedMotion();
   const [starColors, setStarColors] = useState<string[] | null>(null);
+  const [lightMode, setLightMode] = useState(false);
 
   useEffect(() => {
-    const updateColors = () => setStarColors(readThemeColors());
-    updateColors();
+    const updateTheme = () => {
+      setLightMode(!document.documentElement.classList.contains("dark"));
+      setStarColors(readThemeColors());
+    };
+    updateTheme();
 
-    const themeObserver = new MutationObserver(updateColors);
+    const themeObserver = new MutationObserver(updateTheme);
     themeObserver.observe(document.documentElement, {
       attributes: true,
       attributeFilter: ["class"],
@@ -80,12 +84,13 @@ export function Hero() {
           <Galaxy
             starColors={starColors}
             density={1}
-            glowIntensity={0.35}
-            flareIntensity={0.8}
+            lightMode={lightMode}
+            glowIntensity={lightMode ? 0.18 : 0.35}
+            flareIntensity={lightMode ? 0.45 : 0.8}
             starSpeed={0.45}
             mouseRepulsion
             clickWarp
-            opacity={0.75}
+            opacity={lightMode ? 0.65 : 0.75}
             dpr={1.5}
             className="h-full w-full"
           />

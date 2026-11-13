@@ -18,7 +18,7 @@ export const styles = {
     "sm:flex-none sm:px-6 sm:py-3.5 sm:text-sm",
   primaryCtaIcon: "size-3.5 shrink-0 sm:size-4",
   secondaryCta:
-    "inline-flex min-w-0 flex-1 items-center justify-center whitespace-nowrap rounded-xl border border-white/10 bg-white/5 px-2.5 py-3 text-[0.6875rem] font-semibold text-foreground transition hover:bg-white/10 sm:flex-none sm:px-6 sm:py-3.5 sm:text-sm",
+    "inline-flex min-w-0 flex-1 items-center justify-center whitespace-nowrap rounded-xl border border-border bg-muted px-2.5 py-3 text-[0.6875rem] font-semibold text-foreground shadow-sm transition hover:bg-secondary sm:flex-none sm:px-6 sm:py-3.5 sm:text-sm",
   proof: "mt-8 flex flex-wrap items-center justify-center gap-3 sm:mt-10",
   audienceText: "text-sm text-foreground/70 sm:text-base",
 };

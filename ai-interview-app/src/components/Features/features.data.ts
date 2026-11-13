@@ -2,8 +2,6 @@
 import type { FeaturesContent } from "./features.types";
 
 export const FEATURES: FeaturesContent = {
-  eyebrow: "Why AceAI?",
-
   liveRoleplay: {
     title: "Live Roleplay",
     subtitle: "Real-time adaptive AI interviewer",

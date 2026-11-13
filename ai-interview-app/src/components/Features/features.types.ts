@@ -66,7 +66,6 @@ export interface EvaluationContent {
 }
 
 export interface FeaturesContent {
-  eyebrow: string;
   liveRoleplay: LiveRoleplayContent;
   semanticFeedback: SemanticFeedbackContent;
   roleBanks: RoleBanksContent;

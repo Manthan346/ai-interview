@@ -1,17 +1,12 @@
-import auraImg from "../../../public/candidate.jpg";
-import candidateImg from "../../../public/candidate.jpg";
-
 export const aura = {
   name: "Lead AI Interviewer",
   displayName: "AURA AI",
   status: "Analyzing response patterns...",
-  image: auraImg,
 };
 
 export const candidate = {
   name: "Alexander Chen",
   role: "Software Engineering Candidate",
-  image: candidateImg,
 };
 
 export const transcript = [
